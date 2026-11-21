@@ -15,7 +15,7 @@ const firebaseConfig = {
 };
 const OWNER_EMAIL="alvo.customs@gmail.com";
 let WHATSAPP="919664056178";
-const DEFAULTS={announce:"",heroLine1:"MAKE WATER YOUR",heroLine2:"IDENTITY.",heroText:"Premium custom-label packaged drinking water bottle solutions for hotels, restaurants, events and businesses.",phone:"+91 96640 56178",whatsapp:"919664056178",email:"alvo.customs@gmail.com",instagram:"alvocustoms",youtube:"alvocustoms"};
+const DEFAULTS={announce:"",heroLine1:"Your name.",heroLine2:"On every bottle.",heroText:"Premium custom-label packaged water for weddings, hotels, restaurants and events. You bring the brand, we bottle it beautifully.",phone:"+91 96640 56178",whatsapp:"919664056178",email:"alvo.customs@gmail.com",instagram:"alvocustoms",youtube:"alvocustoms"};
 const byNew=(a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
 const url=(v,base)=>/^https?:/.test(v)?v:base+String(v).replace(/^@/,"");
 function applySettings(s){
@@ -75,7 +75,7 @@ function addToCart(id,silent){
  const item=cart.find(x=>x.id===id);
  if(item)item.qty+=q;
  else cart.push({id:p.id,name:p.name,price:Number(p.price),qty:q});
- updateCount();renderCart();if(!silent)msg("Added to cart!");
+ updateCount();renderCart();if(!silent)toast("Added to cart ✓");
 }
 function buyNow(id){addToCart(id,true);openCart()}
 function changeQty(id,n){
@@ -89,27 +89,57 @@ function openCheckout(){
  closeModal("cartModal");$("checkoutModal").classList.add("show");
 }
 
+let curCat="All",catSet=false;
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
+const pcard=p=>`<article class="card">
+ <div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" onerror="this.src='https://placehold.co/600x450/0c1a24/6fe3ea?text=ALVO'"></div>
+ <div class="card-body"><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small>
+  <h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3>
+  <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:400">/ bottle</small></div>
+  <div class="card-actions"><button class="btn outline" onclick="openProduct('${p.id}')">View Details</button><button class="btn" onclick="addToCart('${p.id}')">Add</button></div></div></article>`;
+function renderProducts(){
+ const act=products.filter(p=>p.active===true);
+ const list=curCat==="All"?act:act.filter(p=>(p.category||"Custom")===curCat);
+ $("productGrid").innerHTML=list.map(pcard).join("")||'<div class="empty">No products in this category yet.</div>';
+ const cats=[...new Set(act.map(p=>p.category||"Custom"))];
+ $("chips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===curCat?" on":""}" onclick="setCat('${safe(c)}')">${safe(c)}</button>`).join(""):"";
+ const feat=act.filter(p=>p.featured===true);
+ $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map(pcard).join("")||'<div class="empty">New products coming soon.</div>';
+}
+function setCat(c){curCat=c;renderProducts()}
 async function loadProducts(){
  try{
   const snap=await getDocs(collection(db,"products"));
   products=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
-  const act=products.filter(p=>p.active===true);
-  const card=p=>`
- <article class="card">
-    <div class="product-image"><img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" onerror="this.src='https://placehold.co/600x400/182530/d7b779?text=ALVO'"></div>
-    <div class="card-body"><h3>${safe(p.name)}${p.size?` <small class="gold">· ${safe(p.size)}</small>`:""}</h3><p>${safe(p.description||"")}</p>
-     <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:normal">/ bottle, incl. GST</small></div>
-     <div class="moq">Custom label orders: bulk pricing on request</div>
-     <div class="buyrow"><label class="muted" style="font-size:12px" for="q_${p.id}">Qty</label><input class="qty" id="q_${p.id}" type="number" min="1" value="1" inputmode="numeric"></div>
-     <div class="card-actions"><button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button><button class="btn outline" onclick="buyNow('${p.id}')">Buy Now</button></div>
-    </div>
-   </article>`;
-  $("productGrid").innerHTML=act.map(card).join("")||'<div class="empty">New products coming soon.</div>';
-  const feat=act.filter(p=>p.featured===true);
-  $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map(card).join("")||'<div class="empty">New products coming soon.</div>';
-  renderAdminProducts();
+  if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}
+  renderProducts();renderAdminProducts();
  }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded. Please try again.</div>'}
 }
+const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
+function stageVid(p){
+ const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+ if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+ return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls playsinline preload="metadata"></video></div>`;
+}
+function pmShow(id,kind,btn){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ $("pmStage").innerHTML=kind==="vid"?stageVid(p):stageImg(p);
+ btn.parentNode.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));btn.classList.add("on");
+}
+function openProduct(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ $("pmBody").innerHTML=`<div class="pm-grid"><div><div id="pmStage">${stageImg(p)}</div>${p.video?`<div class="chips" style="margin:12px 0 0;justify-content:flex-start"><button class="chip on" onclick="pmShow('${p.id}','img',this)">Photo</button><button class="chip" onclick="pmShow('${p.id}','vid',this)">▶ Video</button></div>`:""}</div>
+ <div><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small><h2 style="font-size:30px;margin:4px 0">${safe(p.name)}</h2>
+ <div class="price" style="font-size:26px">${money(p.price)} <small class="muted" style="font-size:13px;font-weight:400">/ bottle, incl. GST</small></div>
+ <p class="muted">${safe(p.description||"")}</p>
+ ${p.details?`<p class="muted" style="white-space:pre-line;margin-top:8px">${safe(p.details)}</p>`:""}
+ <ul class="spec"><li>This is a <b>sample design</b>. Your final label is made with your own logo and details.</li><li>Design is shared for your approval before production.</li><li>Bulk pricing on request.</li></ul>
+ <div class="buyrow"><label class="muted" for="q_${p.id}">Qty</label><input class="qty" id="q_${p.id}" type="number" min="1" value="1" inputmode="numeric"></div>
+ <div class="card-actions"><button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button><button class="btn outline" onclick="buyNow('${p.id}');closeModal('productModal')">Buy Now</button></div>
+ <button class="btn outline" style="width:100%;margin-top:10px" onclick="enquireProduct('${p.id}')">Customise on WhatsApp</button></div></div>`;
+ $("productModal").classList.add("show");
+}
+function enquireProduct(id){const p=products.find(x=>x.id===id);window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent("Hi ALVO CUSTOMS, I want a custom label for: "+(p?p.name:"")+". Please share details."),"_blank")}
 
 async function loadProjects(){
  try{
@@ -200,7 +230,7 @@ $("productForm").addEventListener("submit",async e=>{
   if(file&&file.size)image=await uploadImage(file,"products");
   else if(id&&!image)image=products.find(p=>p.id===id)?.image||"";
   if(!image)throw Error("Add an image URL or upload an image.");
-  const data={name,price,size:f.get("size").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
+  const vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const data={name,price,video:vid,size:f.get("size").trim(),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
   if(id)await updateDoc(doc(db,"products",id),data);
   else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
   form.reset();form.elements.id.value="";await loadProducts();msg("Product saved.");
@@ -215,7 +245,7 @@ function renderAdminProducts(){
 }
 function editProduct(id){
  owner();const p=products.find(x=>x.id===id);if(!p)return;
- const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
+ const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.video.value=p.video||"";f.elements.category.value=p.category||"Classic";f.elements.details.value=p.details||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
 }
 function resetProductForm(){$("productForm").reset();$("productForm").elements.id.value=""}
 async function deleteProduct(id){
@@ -303,7 +333,7 @@ async function exportBackup(){
 $("year").textContent=new Date().getFullYear();
 
 Object.assign(window,{
-openCart,closeModal,openCheckout,addToCart,buyNow,changeQty,removeItem,
+openCart,closeModal,openProduct,pmShow,setCat,enquireProduct,openCheckout,addToCart,buyNow,changeQty,removeItem,
  adminSignIn,adminSignOut,showTab,editProduct,resetProductForm,
  deleteProduct,updateOrder,delItem,deleteProject,exportBackup
 });
