@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1117">
+<title>ALVO CUSTOMS | Custom Label Packaged Water Bottles</title>
+<meta name="description" content="Premium custom-label packaged drinking water bottles for hotels, restaurants, weddings and events. ALVO Customs - Your Brand. Your Identity.">
+
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="announce" id="announce" hidden></div>
+<header id="header">
+ <div class="container">
+  <nav>
+   <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home">ALVO <span class="gold">CUSTOMS</span></a>
+   <div class="links" id="links"><a href="index.html" class="active">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+   <div class="navright">
+    <button class="smallbtn" aria-label="Cart" onclick="openCart()">🛒 <span id="cartCount">0</span></button>
+    <button class="smallbtn" aria-label="Menu" onclick="document.getElementById('links').classList.toggle('open')">☰</button>
+   </div>
+  </nav>
+ </div>
+</header>
+<main>
+<section class="hero" id="home">
+ <div class="container hero-content">
+  <div class="eyebrow">Your Brand. Your Identity.</div>
+  <h1><span data-s="heroLine1">MAKE WATER YOUR</span> <span class="gold" data-s="heroLine2">IDENTITY.</span></h1>
+  <p data-s="heroText">Premium custom-label packaged drinking water bottle solutions for hotels, restaurants, events and businesses.</p>
+  <div class="hero-actions"><a class="btn" href="products.html">Explore Products</a>
+  <a class="btn outline" href="contact.html">Get Custom Quote</a></div>
+ </div>
+</section>
+
+<section style="padding-top:35px">
+ <div class="container features">
+  <div class="feature"><span class="gold">01</span><strong>Your Brand Identity</strong><p>Your logo, your label, your identity.</p></div>
+  <div class="feature"><span class="gold">02</span><strong>Premium Presentation</strong><p>Make every table look more professional.</p></div>
+  <div class="feature"><span class="gold">03</span><strong>Business Solutions</strong><p>Custom bottle solutions for businesses.</p></div>
+ </div>
+</section>
+
+<section id="featured">
+ <div class="container">
+  <div class="heading"><div class="eyebrow">THE COLLECTION</div><h2>Featured <span class="gold">Bottles</span></h2><p class="muted">Swipe to explore →</p></div>
+  <div class="row" id="featuredRow"><div class="empty">Loading products...</div></div>
+  <p style="text-align:center;margin-top:22px"><a class="btn outline" href="products.html">View All Products</a></p>
+ </div>
+</section>
+
+<section id="workTeaser" hidden>
+ <div class="container">
+  <div class="heading"><div class="eyebrow">OUR WORK</div><h2>Brands we have <span class="gold">bottled</span></h2></div>
+  <div class="row" id="projectRow"></div>
+  <p style="text-align:center;margin-top:22px"><a class="btn outline" href="projects.html">See All Projects</a></p>
+ </div>
+</section>
+
+<section id="process">
+ <div class="container">
+  <div class="heading"><div class="eyebrow">HOW IT WORKS</div><h2>Simple <span class="gold">Process</span></h2></div>
+  <div class="steps">
+   <div class="step"><span class="gold">01</span><b>Share Logo</b><p>Send your logo and requirement on WhatsApp.</p></div>
+   <div class="step"><span class="gold">02</span><b>Design Approval</b><p>We prepare a label mockup for your approval.</p></div>
+   <div class="step"><span class="gold">03</span><b>Production</b><p>Bottles are filled, labelled and packed.</p></div>
+   <div class="step"><span class="gold">04</span><b>Delivery</b><p>Delivered to your venue on the agreed date.</p></div>
+  </div>
+ </div>
+</section>
+
+<section class="ctaband"><div class="container"><h2>Ready for your own <span class="gold">branded bottle?</span></h2><p class="muted">Tell us your requirement and we will share a design and quote.</p><a class="btn" href="contact.html">Get Custom Quote</a></div></section>
+</main>
+<footer id="footer">
+ <div class="logo">ALVO <span class="gold">CUSTOMS</span></div>
+ <p>YOUR BRAND. YOUR IDENTITY.</p>
+ <div class="footlinks"><a href="index.html" class="active">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+ <p><a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a> · <a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p>
+ <p style="margin-top:10px"><a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a> · <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></p>
+ <p class="copy" style="margin-top:12px;font-size:13px">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
+</footer>
+<a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
+
+<div class="overlay" id="cartModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('cartModal')">×</button>
+  <h2>Your Cart</h2><div id="cartItems"></div>
+  <div style="display:flex;justify-content:space-between;padding:18px 0;font-size:20px"><b>Total</b><b id="cartTotal">₹0</b></div>
+  <button class="btn" onclick="openCheckout()">Proceed to Checkout</button>
+ </div>
+</div>
+
+<div class="overlay" id="checkoutModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('checkoutModal')">×</button>
+  <h2>Checkout</h2>
+  <form id="checkoutForm">
+   <div class="field"><label>Full Name</label><input name="name" required></div>
+   <div class="field"><label>Business / Hotel</label><input name="business"></div>
+   <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" required></div>
+   <div class="field"><label>Delivery Address</label><textarea name="address" required></textarea></div>
+   <div class="field"><label>Additional Note</label><textarea name="note"></textarea></div>
+   <button class="btn" type="submit">Place Order on WhatsApp</button>
+  </form>
+ </div>
+</div>
+
+
+
+<script src="fx.js" defer></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

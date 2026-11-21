@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1117">
+<title>Contact | ALVO CUSTOMS</title>
+<meta name="description" content="Contact ALVO CUSTOMS on WhatsApp for custom-label packaged water bottles.">
+
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="announce" id="announce" hidden></div>
+<header id="header">
+ <div class="container">
+  <nav>
+   <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home">ALVO <span class="gold">CUSTOMS</span></a>
+   <div class="links" id="links"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html" class="active">Contact</a></div>
+   <div class="navright">
+    <button class="smallbtn" aria-label="Cart" onclick="openCart()">🛒 <span id="cartCount">0</span></button>
+    <button class="smallbtn" aria-label="Menu" onclick="document.getElementById('links').classList.toggle('open')">☰</button>
+   </div>
+  </nav>
+ </div>
+</header>
+<main>
+<section id="contact">
+ <div class="container">
+  <div class="heading"><div class="eyebrow">LET'S CONNECT</div><h2>Start Your <span class="gold">Project</span></h2></div>
+  <div class="contact-grid">
+   <div><h2>Let's build your <span class="gold">identity.</span></h2><p class="muted" style="margin:15px 0">Looking for custom-label water bottles for your hotel, restaurant or event? Contact ALVO CUSTOMS.</p><p><span class="gold">WhatsApp</span><br><a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a></p><p style="margin-top:15px"><span class="gold">Email</span><br><a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p><p style="margin-top:15px"><span class="gold">Follow Us</span><br><a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a> · <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></p><p style="margin-top:15px"><span class="gold">Business</span><br>Custom Label Bottle Solutions</p></div>
+   <form class="formbox" id="enquiryForm">
+    <div class="field"><label>Your Name</label><input name="name" placeholder="e.g. Rahul Sharma" autocomplete="name" required></div>
+    <div class="field"><label>Business Name</label><input name="business" placeholder="e.g. Madina Restaurant" autocomplete="organization"></div>
+    <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" title="Enter a valid phone number" placeholder="e.g. 98765 43210" autocomplete="tel" required></div>
+    <div class="field"><label>Approx. Quantity</label><select name="qty"><option>Under 500 bottles</option><option>500 - 1,000 bottles</option><option>1,000 - 5,000 bottles</option><option>5,000+ bottles</option></select></div>
+    <div class="field"><label>Requirement</label><textarea name="message" placeholder="Bottle size (500ml / 1L), event date, label idea..." required></textarea></div>
+    <p class="notice" style="margin:-4px 0 14px">You can send your logo on WhatsApp after this message.</p>
+    <button class="btn">Send Enquiry on WhatsApp</button>
+   </form>
+  </div>
+ </div>
+</section>
+
+</main>
+<footer id="footer">
+ <div class="logo">ALVO <span class="gold">CUSTOMS</span></div>
+ <p>YOUR BRAND. YOUR IDENTITY.</p>
+ <div class="footlinks"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html" class="active">Contact</a></div>
+ <p><a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a> · <a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p>
+ <p style="margin-top:10px"><a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a> · <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></p>
+ <p class="copy" style="margin-top:12px;font-size:13px">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
+</footer>
+<a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
+
+<div class="overlay" id="cartModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('cartModal')">×</button>
+  <h2>Your Cart</h2><div id="cartItems"></div>
+  <div style="display:flex;justify-content:space-between;padding:18px 0;font-size:20px"><b>Total</b><b id="cartTotal">₹0</b></div>
+  <button class="btn" onclick="openCheckout()">Proceed to Checkout</button>
+ </div>
+</div>
+
+<div class="overlay" id="checkoutModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('checkoutModal')">×</button>
+  <h2>Checkout</h2>
+  <form id="checkoutForm">
+   <div class="field"><label>Full Name</label><input name="name" required></div>
+   <div class="field"><label>Business / Hotel</label><input name="business"></div>
+   <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" required></div>
+   <div class="field"><label>Delivery Address</label><textarea name="address" required></textarea></div>
+   <div class="field"><label>Additional Note</label><textarea name="note"></textarea></div>
+   <button class="btn" type="submit">Place Order on WhatsApp</button>
+  </form>
+ </div>
+</div>
+
+
+
+<script src="fx.js" defer></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

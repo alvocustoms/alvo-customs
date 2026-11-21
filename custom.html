@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1117">
+<title>Custom Labels | ALVO CUSTOMS</title>
+<meta name="description" content="Custom label water bottle solutions with your logo and design. Simple process from design to delivery.">
+
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="announce" id="announce" hidden></div>
+<header id="header">
+ <div class="container">
+  <nav>
+   <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home">ALVO <span class="gold">CUSTOMS</span></a>
+   <div class="links" id="links"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html" class="active">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+   <div class="navright">
+    <button class="smallbtn" aria-label="Cart" onclick="openCart()">🛒 <span id="cartCount">0</span></button>
+    <button class="smallbtn" aria-label="Menu" onclick="document.getElementById('links').classList.toggle('open')">☰</button>
+   </div>
+  </nav>
+ </div>
+</header>
+<main>
+<section class="custom" id="custom">
+ <div class="container custom-grid">
+  <div><div class="eyebrow">CUSTOM LABEL SOLUTIONS</div><h2 style="font-size:43px;line-height:1.2;margin:15px 0">Your Business.<br><span class="gold">Your Bottle.</span></h2><p class="muted">Turn an ordinary water bottle into a part of your brand experience. Custom-label solutions for hotels, restaurants and businesses.</p><a href="contact.html" class="btn" style="margin-top:22px">Start Your Project</a></div>
+  <img class="custom-image" src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=85" alt="Water bottle">
+ </div>
+</section>
+
+<section id="process">
+ <div class="container">
+  <div class="heading"><div class="eyebrow">HOW IT WORKS</div><h2>Simple <span class="gold">Process</span></h2></div>
+  <div class="steps">
+   <div class="step"><span class="gold">01</span><b>Share Logo</b><p>Send your logo and requirement on WhatsApp.</p></div>
+   <div class="step"><span class="gold">02</span><b>Design Approval</b><p>We prepare a label mockup for your approval.</p></div>
+   <div class="step"><span class="gold">03</span><b>Production</b><p>Bottles are filled, labelled and packed.</p></div>
+   <div class="step"><span class="gold">04</span><b>Delivery</b><p>Delivered to your venue on the agreed date.</p></div>
+  </div>
+ </div>
+</section>
+
+
+</main>
+<footer id="footer">
+ <div class="logo">ALVO <span class="gold">CUSTOMS</span></div>
+ <p>YOUR BRAND. YOUR IDENTITY.</p>
+ <div class="footlinks"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html" class="active">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+ <p><a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a> · <a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p>
+ <p style="margin-top:10px"><a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a> · <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></p>
+ <p class="copy" style="margin-top:12px;font-size:13px">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
+</footer>
+<a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
+
+<div class="overlay" id="cartModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('cartModal')">×</button>
+  <h2>Your Cart</h2><div id="cartItems"></div>
+  <div style="display:flex;justify-content:space-between;padding:18px 0;font-size:20px"><b>Total</b><b id="cartTotal">₹0</b></div>
+  <button class="btn" onclick="openCheckout()">Proceed to Checkout</button>
+ </div>
+</div>
+
+<div class="overlay" id="checkoutModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('checkoutModal')">×</button>
+  <h2>Checkout</h2>
+  <form id="checkoutForm">
+   <div class="field"><label>Full Name</label><input name="name" required></div>
+   <div class="field"><label>Business / Hotel</label><input name="business"></div>
+   <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" required></div>
+   <div class="field"><label>Delivery Address</label><textarea name="address" required></textarea></div>
+   <div class="field"><label>Additional Note</label><textarea name="note"></textarea></div>
+   <button class="btn" type="submit">Place Order on WhatsApp</button>
+  </form>
+ </div>
+</div>
+
+
+
+<script src="fx.js" defer></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

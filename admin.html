@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1117">
+<title>Admin | ALVO CUSTOMS</title>
+<meta name="description" content="Premium custom-label packaged drinking water bottles for hotels, restaurants, weddings and events. ALVO Customs - Your Brand. Your Identity.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main>
+
+</main>
+
+<section class="admin active" id="adminPage">
+ <div class="container">
+  <div class="panel" id="adminLogin" style="max-width:430px;margin:60px auto;padding:25px">
+   <h2>ALVO Admin Login</h2><p class="notice">Authorized owner only.</p>
+   <button class="btn" onclick="adminSignIn()" style="margin-top:18px">Sign in with Google</button>
+   <p id="loginMessage" class="notice"></p>
+  </div>
+  <div id="adminDashboard" style="display:none">
+   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div><div class="eyebrow">CONTROL CENTER</div><h1 style="font-size:36px">Admin Dashboard</h1></div>
+    <button class="smallbtn" onclick="adminSignOut()">Sign Out</button>
+   </div>
+   <div class="tabs">
+    <button onclick="showTab('productsAdmin')">Products</button>
+    <button onclick="showTab('ordersAdmin')">Orders</button>
+    <button onclick="showTab('enquiriesAdmin')">Enquiries</button>
+    <button onclick="showTab('projectsAdmin')">Projects</button>
+    <button onclick="showTab('siteAdmin')">Site Settings</button>
+    <button onclick="showTab('settingsAdmin')">Backup</button>
+   </div>
+   <div class="panel" id="productsAdmin" style="padding:20px">
+ <h2>Manage Products</h2>
+    <form id="productForm" style="margin-top:15px">
+     <input type="hidden" name="id">
+     <div class="field"><label>Product Name</label><input name="name" required></div>
+     <div class="field"><label>Price (₹)</label><input name="price" type="number" min="0" required></div>
+     <div class="field"><label>Description</label><textarea name="description"></textarea></div>
+     <div class="field"><label>Bottle Size (e.g. 500ml, 1L)</label><input name="size"></div>
+     <div class="field"><label>Show on Home page carousel?</label><select name="featured"><option value="false">No</option><option value="true">Yes</option></select></div>
+     <div class="field"><label>Upload Image</label><input name="image" type="file" accept="image/*"></div>
+     <div class="field"><label>Or Image URL</label><input name="imageUrl" type="url"></div>
+     <div class="field"><label>Status</label><select name="active"><option value="true">Active</option><option value="false">Draft</option></select></div>
+     <button type="submit" class="btn">Save Product</button>
+     <button class="smallbtn" type="button" onclick="resetProductForm()">Clear</button>
+    </form>
+    <div id="adminProductList" style="margin-top:20px"></div>
+   </div>
+   <div class="panel" id="ordersAdmin" style="padding:20px" hidden><h2>Customer Orders</h2><div id="adminOrders">Loading...</div></div>
+   <div class="panel" id="projectsAdmin" style="padding:20px" hidden>
+    <h2>Manage Projects</h2>
+    <form id="projectForm" style="margin-top:15px">
+<div class="field"><label>Client / Project Name</label><input name="name" required></div>
+     <div class="field"><label>Description</label><textarea name="description"></textarea></div>
+     <div class="field"><label>Project Image</label><input name="image" type="file" accept="image/*" required></div>
+     <button class="btn">Upload Project</button>
+    </form>
+    <div id="adminProjectList" style="margin-top:20px"></div>
+   </div>
+   <div class="panel" id="enquiriesAdmin" style="padding:20px" hidden><h2>Customer Enquiries</h2><div id="adminEnquiries">Loading...</div></div>
+   <div class="panel" id="siteAdmin" style="padding:20px" hidden>
+    <h2>Site Settings</h2><p class="notice">Change website text, contact details and hero photo. Empty fields use the default.</p>
+    <form id="siteForm" style="margin-top:15px">
+     <div class="field"><label>Top announcement bar (optional, e.g. "Wedding season offer: 10% off")</label><input name="announce"></div>
+     <div class="field"><label>Hero heading (white part)</label><input name="heroLine1" placeholder="MAKE WATER YOUR"></div>
+     <div class="field"><label>Hero heading (gold part)</label><input name="heroLine2" placeholder="IDENTITY."></div>
+     <div class="field"><label>Hero paragraph</label><textarea name="heroText"></textarea></div>
+     <div class="field"><label>Hero photo (replaces background)</label><input name="heroFile" type="file" accept="image/*"></div>
+     <div class="field"><label><input type="checkbox" name="clearHero" style="width:auto"> Remove custom hero photo</label></div>
+     <div class="field"><label>Phone (shown on site)</label><input name="phone" placeholder="+91 96640 56178"></div>
+     <div class="field"><label>WhatsApp number (digits only, with 91)</label><input name="whatsapp" placeholder="919664056178"></div>
+     <div class="field"><label>Email</label><input name="email" type="email"></div>
+     <div class="field"><label>Instagram (handle or link)</label><input name="instagram" placeholder="alvocustoms"></div>
+     <div class="field"><label>YouTube (handle or link)</label><input name="youtube" placeholder="alvocustoms"></div>
+     <button class="btn">Save Site Settings</button>
+    </form>
+   </div>
+   <div class="panel" id="settingsAdmin" style="padding:20px" hidden>
+    <h2>Website Backup</h2><button class="btn" onclick="exportBackup()">Export JSON Backup</button>
+   </div>
+  </div>
+ </div>
+</section>
+
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

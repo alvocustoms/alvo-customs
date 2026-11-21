@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1117">
+<title>Our Work | ALVO CUSTOMS</title>
+<meta name="description" content="Selected custom bottle identity projects by ALVO CUSTOMS.">
+
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="announce" id="announce" hidden></div>
+<header id="header">
+ <div class="container">
+  <nav>
+   <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home">ALVO <span class="gold">CUSTOMS</span></a>
+   <div class="links" id="links"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html" class="active">Our Work</a><a href="contact.html">Contact</a></div>
+   <div class="navright">
+    <button class="smallbtn" aria-label="Cart" onclick="openCart()">🛒 <span id="cartCount">0</span></button>
+    <button class="smallbtn" aria-label="Menu" onclick="document.getElementById('links').classList.toggle('open')">☰</button>
+   </div>
+  </nav>
+ </div>
+</header>
+<main>
+<section id="projects">
+ <div class="container">
+  <div class="heading"><div class="eyebrow">OUR WORK</div><h2>Selected <span class="gold">Projects</span></h2><p class="muted">Custom bottle identity projects.</p></div>
+  <div class="projects" id="projectGrid"><div class="empty">Projects will appear here.</div></div>
+ </div>
+</section>
+
+
+</main>
+<footer id="footer">
+ <div class="logo">ALVO <span class="gold">CUSTOMS</span></div>
+ <p>YOUR BRAND. YOUR IDENTITY.</p>
+ <div class="footlinks"><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html" class="active">Our Work</a><a href="contact.html">Contact</a></div>
+ <p><a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a> · <a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p>
+ <p style="margin-top:10px"><a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a> · <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></p>
+ <p class="copy" style="margin-top:12px;font-size:13px">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
+</footer>
+<a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
+
+<div class="overlay" id="cartModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('cartModal')">×</button>
+  <h2>Your Cart</h2><div id="cartItems"></div>
+  <div style="display:flex;justify-content:space-between;padding:18px 0;font-size:20px"><b>Total</b><b id="cartTotal">₹0</b></div>
+  <button class="btn" onclick="openCheckout()">Proceed to Checkout</button>
+ </div>
+</div>
+
+<div class="overlay" id="checkoutModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('checkoutModal')">×</button>
+  <h2>Checkout</h2>
+  <form id="checkoutForm">
+   <div class="field"><label>Full Name</label><input name="name" required></div>
+   <div class="field"><label>Business / Hotel</label><input name="business"></div>
+   <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" required></div>
+   <div class="field"><label>Delivery Address</label><textarea name="address" required></textarea></div>
+   <div class="field"><label>Additional Note</label><textarea name="note"></textarea></div>
+   <button class="btn" type="submit">Place Order on WhatsApp</button>
+  </form>
+ </div>
+</div>
+
+
+
+<script src="fx.js" defer></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
