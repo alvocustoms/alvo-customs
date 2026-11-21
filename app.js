@@ -1,8 +1,9 @@
 
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {getFirestore,collection,addDoc,getDocs,doc,deleteDoc,updateDoc,getDoc,setDoc,serverTimestamp,query,orderBy} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
+const IS_ADMIN=!!document.getElementById("adminPage");
+const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=IS_ADMIN?await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"):{};
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCKBprdUJsrvbvCHoD-EjyZihsenZaJ3LI",
@@ -31,10 +32,10 @@ function applySettings(s){
  if(d.heroImage)document.documentElement.style.setProperty("--hero-img",'url("'+d.heroImage+'")');
  const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
 }
-async function loadSettings(){try{const s=await getDoc(doc(db,"settings","site"));return s.exists()?s.data():{}}catch(e){console.error(e);return {}}}
+async function loadSettings(){try{const s=await getDoc(doc(db,"settings","site"));const d=s.exists()?s.data():{};try{localStorage.setItem("alvoS",JSON.stringify(d))}catch(e){}return d}catch(e){console.error(e);return {}}}
 /* ===================================== */
 const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
+const auth=IS_ADMIN?getAuth(app):null;
 const db=getFirestore(app);
 const provider=new GoogleAuthProvider();
 
@@ -109,21 +110,25 @@ function renderProducts(){
 function setCat(c){curCat=c;renderProducts()}
 async function loadProducts(){
  try{
+  if(!IS_ADMIN&&!products.length){try{const ca=sessionStorage.getItem("alvoP");if(ca){products=JSON.parse(ca);if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}renderProducts()}}catch(e){}}
   const snap=await getDocs(collection(db,"products"));
   products=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
   if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}
+  if(!IS_ADMIN)try{sessionStorage.setItem("alvoP",JSON.stringify(products))}catch(e){}
   renderProducts();renderAdminProducts();
  }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded. Please try again.</div>'}
 }
 const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
 function stageVid(p){
  const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+ if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
  if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
  return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls playsinline preload="metadata"></video></div>`;
 }
 function pmShow(id,kind,btn){
  const p=products.find(x=>x.id===id);if(!p)return;
  $("pmStage").innerHTML=kind==="vid"?stageVid(p):stageImg(p);
+ if(kind==="vid"&&String(p.video).startsWith("fs:"))playFs(p.video);
  btn.parentNode.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));btn.classList.add("on");
 }
 function openProduct(id){
@@ -192,7 +197,7 @@ async function adminSignIn(){
 async function adminSignOut(){await signOut(auth);location.hash="";location.reload()}
 
 const isAdminPage=!!document.getElementById("adminPage");
-onAuthStateChanged(auth,async user=>{
+if(IS_ADMIN)onAuthStateChanged(auth,async user=>{
  currentUser=user;
  if(!isAdminPage)return;
  const isAdmin=!!user&&user.email.toLowerCase()===OWNER_EMAIL.toLowerCase();
@@ -211,14 +216,44 @@ async function uploadImage(file,folder){
  if(file.size>12*1024*1024)throw Error("Image must be under 12 MB.");
  const u=URL.createObjectURL(file);
  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(Error("Could not read image."));i.src=u});
- const hero=folder==="settings",maxW=hero?1400:800,cap=hero?900000:350000;
- const sc=Math.min(1,maxW/img.width),c=document.createElement("canvas");
+ const hero=folder==="settings",maxW=hero?1200:640,cap=hero?260000:110000;
+ const sc=Math.min(1,maxW/img.width);
+ let c=document.createElement("canvas");
  c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
  const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
- for(const q of [.78,.65,.5,.4]){const out=c.toDataURL("image/jpeg",q);if(out.length<=cap)return out}
+ for(let t=0;t<4;t++){
+  for(const q of [.72,.6,.5,.4]){const out=c.toDataURL("image/jpeg",q);if(out.length<=cap)return out}
+  const c2=document.createElement("canvas");c2.width=Math.round(c.width*.8);c2.height=Math.round(c.height*.8);c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);c=c2;
+ }
  throw Error("Image is too detailed. Try a smaller photo.");
 }
 
+async function uploadVideo(file){
+ owner();
+ if(!file.type.startsWith("video/"))throw Error("Select a video file.");
+ if(file.size>7*1024*1024)throw Error("Video must be under 7 MB. Trim it, or use a YouTube link.");
+ const buf=new Uint8Array(await file.arrayBuffer()),CH=600*1024,id="v"+Date.now(),n=Math.ceil(buf.length/CH);
+ for(let i=0;i<n;i++){
+  const part=buf.subarray(i*CH,(i+1)*CH);let s="";
+  for(let k=0;k<part.length;k+=8192)s+=String.fromCharCode.apply(null,part.subarray(k,k+8192));
+  await setDoc(doc(db,"videos",id+"_"+i),{n,i,type:file.type,data:btoa(s)});
+  toast("Uploading video "+(i+1)+"/"+n);
+ }
+ return "fs:"+id+":"+n+":"+file.type;
+}
+const fsCache={};
+async function playFs(v){
+ const el=document.getElementById("fsVid"),ld=document.getElementById("fsLoad");if(!el)return;
+ try{
+  if(!fsCache[v]){
+   const [,id,n,...t]=v.split(":");
+   const snaps=await Promise.all(Array.from({length:+n},(_,i)=>getDoc(doc(db,"videos",id+"_"+i))));
+   const parts=snaps.map(s=>Uint8Array.from(atob(s.data().data),ch=>ch.charCodeAt(0)));
+   fsCache[v]=URL.createObjectURL(new Blob(parts,{type:t.join(":")}));
+  }
+  el.src=fsCache[v];ld.remove();el.play().catch(()=>{});
+ }catch(e){console.error(e);ld.textContent="Video could not be loaded."}
+}
 $("productForm").addEventListener("submit",async e=>{
  e.preventDefault();const form=e.target,button=form.querySelector("button[type=submit]");
  button.disabled=true;
@@ -230,7 +265,7 @@ $("productForm").addEventListener("submit",async e=>{
   if(file&&file.size)image=await uploadImage(file,"products");
   else if(id&&!image)image=products.find(p=>p.id===id)?.image||"";
   if(!image)throw Error("Add an image URL or upload an image.");
-  const vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const data={name,price,video:vid,size:f.get("size").trim(),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
+  let vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|fs:|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const vf=f.get("videoFile");if(vf&&vf.size)vid=await uploadVideo(vf);const data={name,price,video:vid,size:f.get("size").trim(),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
   if(id)await updateDoc(doc(db,"products",id),data);
   else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
   form.reset();form.elements.id.value="";await loadProducts();msg("Product saved.");
@@ -339,6 +374,7 @@ openCart,closeModal,openProduct,pmShow,setCat,enquireProduct,openCheckout,addToC
 });
 
 updateCount();renderCart();
+try{applySettings(JSON.parse(localStorage.getItem("alvoS")||"{}"))}catch(e){}
 loadSettings().then(applySettings);
 if(!isAdminPage){
  if(document.getElementById("productGrid")||document.getElementById("featuredRow"))loadProducts();
