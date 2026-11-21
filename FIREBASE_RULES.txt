@@ -1,0 +1,51 @@
+IMPORTANT: Paste these rules in Firebase Console > Firestore Database > Rules and Storage > Rules.
+They preserve owner-only admin writes. Public users can read active catalogue items, submit enquiries, and submit their own authenticated orders. Do not use test mode.
+
+FIRESTORE RULES (review before publishing):
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner() {
+      return signedIn() && request.auth.token.email == 'alvo.customs@gmail.com';
+    }
+    match /products/{id} {
+      allow read: if resource.data.active == true || owner();
+      allow create, update, delete: if owner();
+    }
+    match /orders/{id} {
+      allow create: if signedIn()
+        && request.resource.data.customerUid == request.auth.uid
+        && request.resource.data.status == 'New';
+      allow read: if owner() || (signedIn() && resource.data.customerUid == request.auth.uid);
+      allow update, delete: if owner();
+    }
+    match /enquiries/{id} {
+      allow create: if request.resource.data.keys().hasAll(['type','status','createdAt'])
+        && request.resource.data.status == 'New';
+      allow read, update, delete: if owner()
+        || (signedIn() && resource.data.customerUid == request.auth.uid && request.method == 'get');
+    }
+  }
+}
+
+STORAGE RULES:
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function owner() {
+      return request.auth != null && request.auth.token.email == 'alvo.customs@gmail.com';
+    }
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if owner() && request.resource.size < 25 * 1024 * 1024;
+    }
+  }
+}
+
+AUTHENTICATION CHECKLIST:
+1. Firebase Console > Authentication > Sign-in method: enable Google and Phone.
+2. Authentication > Settings > Authorized domains: add your deployed Vercel domain.
+3. Phone OTP requires a valid reCAPTCHA and may require billing/verification depending on Firebase project configuration.
+4. Firestore and Storage rules above must be published for the corresponding features.
+5. Admin Google account must be exactly alvo.customs@gmail.com.
