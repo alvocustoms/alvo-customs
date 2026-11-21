@@ -1,9 +1,11 @@
 
-import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import {getFirestore,collection,addDoc,getDocs,doc,deleteDoc,updateDoc,getDoc,setDoc,serverTimestamp,query,orderBy} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
 const IS_ADMIN=!!document.getElementById("adminPage");
-const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=IS_ADMIN?await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"):{};
+const FB="https://www.gstatic.com/firebasejs/11.0.2/";
+const [M1,M2,M3]=await Promise.all([import(IS_ADMIN?FB+"firebase-app.js":"./rest.js"),import(IS_ADMIN?FB+"firebase-firestore.js":"./rest.js"),IS_ADMIN?import(FB+"firebase-auth.js"):{}]);
+const {initializeApp}=M1;
+const {getFirestore,collection,addDoc,getDocs,doc,deleteDoc,updateDoc,getDoc,setDoc,serverTimestamp,query,orderBy}=M2;
+const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=M3;
+
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCKBprdUJsrvbvCHoD-EjyZihsenZaJ3LI",
@@ -93,7 +95,7 @@ function openCheckout(){
 let curCat="All",catSet=false;
 function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
 const pcard=p=>`<article class="card">
- <div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" onerror="this.src='https://placehold.co/600x450/0c1a24/6fe3ea?text=ALVO'"></div>
+ <div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async" onerror="this.src='https://placehold.co/600x450/0c1a24/6fe3ea?text=ALVO'"></div>
  <div class="card-body"><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small>
   <h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3>
   <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:400">/ bottle</small></div>
@@ -116,7 +118,7 @@ async function loadProducts(){
   if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}
   if(!IS_ADMIN)try{sessionStorage.setItem("alvoP",JSON.stringify(products))}catch(e){}
   renderProducts();renderAdminProducts();
- }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded. Please try again.</div>'}
+ }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded ('+safe(e.message)+'). Please reload.</div>'}
 }
 const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
 function stageVid(p){
@@ -150,7 +152,7 @@ async function loadProjects(){
  try{
   const snap=await getDocs(collection(db,"clients"));
   projects=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
-  const card=p=>`<article class="card"><img class="project-image" loading="lazy" src="${safe(p.image)}" alt="${safe(p.name)}">
+  const card=p=>`<article class="card"><img class="project-image" loading="lazy" decoding="async" src="${safe(p.image)}" alt="${safe(p.name)}">
    <div class="card-body"><h3>${safe(p.name)}</h3><p>${safe(p.description||"")}</p></div></article>`;
   $("projectGrid").innerHTML=projects.map(card).join("")||'<div class="empty">Our projects will appear here.</div>';
   $("projectRow").innerHTML=projects.slice(0,8).map(card).join("");

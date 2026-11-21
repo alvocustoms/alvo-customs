@@ -8,19 +8,26 @@
 <meta name="description" content="Custom label water bottles with your logo and design. Simple process from design to delivery.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@600;800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@600;800&display=swap"></noscript>
-<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"><link rel="modulepreload" href="app.js">
+<link rel="modulepreload" href="rest.js">
+<link rel="modulepreload" href="app.js">
 <link rel="stylesheet" href="style.css">
 <script>var d=document.documentElement;d.classList.add("js");try{if(sessionStorage.getItem("alvoIntro"))d.classList.add("nointro");else sessionStorage.setItem("alvoIntro","1")}catch(e){d.classList.add("nointro")}</script>
 </head>
 <body>
-<div id="intro" aria-hidden="true" onclick="this.style.display='none'"><svg class="bottle" viewBox="0 0 120 220" aria-hidden="true"><defs><clipPath id="bc"><path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z"/></clipPath></defs>
-<g clip-path="url(#bc)"><g class="wg"><g class="wv"><path d="M-60 0q15-8 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0V230H-60Z" fill="#6fe3ea" fill-opacity=".85"/></g></g>
-<g class="lab"><rect x="20" y="112" width="80" height="62" fill="#f4efe2"/><rect x="20" y="112" width="80" height="4" fill="#e8cf9a"/><rect x="20" y="170" width="80" height="4" fill="#e8cf9a"/>
-<text x="60" y="138" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="13" fill="#0c1a24">AURA+999</text>
-<text x="60" y="153" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="5.2" letter-spacing="1" fill="#0c1a24">YOUR NAME</text>
-<text x="60" y="162" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="5.2" letter-spacing="1" fill="#0c1a24">YOUR LABEL</text></g></g>
-<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="none" stroke="#6fe3ea" stroke-width="2"/>
-<g class="cap"><rect x="43" y="14" width="34" height="16" rx="3" fill="#6fe3ea"/><path d="M48 14v16M54 14v16M60 14v16M66 14v16M72 14v16" stroke="#04222a" stroke-opacity=".25"/></g></svg><div class="word"><span style="--i:0">A</span><span style="--i:1">L</span><span style="--i:2">V</span><span style="--i:3">O</span><span style="--i:4">&nbsp;</span><span style="--i:5">C</span><span style="--i:6">U</span><span style="--i:7">S</span><span style="--i:8">T</span><span style="--i:9">O</span><span style="--i:10">M</span><span style="--i:11">S</span></div><div class="tag">YOUR BRAND. YOUR IDENTITY.</div></div>
+<div id="intro" aria-hidden="true" onclick="this.style.display='none'"><svg class="bottle" viewBox="0 0 120 220" aria-hidden="true"><defs><clipPath id="bc"><path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z"/></clipPath>
+<linearGradient id="wgd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9aeef2"/><stop offset="1" stop-color="#2bb3bf"/></linearGradient>
+<linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="0" y1="-260" x2="0" y2="90"><stop offset="0" stop-color="#9aeef2" stop-opacity="0"/><stop offset=".5" stop-color="#9aeef2" stop-opacity=".9"/><stop offset="1" stop-color="#9aeef2"/></linearGradient></defs>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="#ffffff" fill-opacity=".05"/>
+<g clip-path="url(#bc)"><g class="wg"><g class="wv"><path d="M-60 0q15-5 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0V230H-60Z" fill="url(#wgd)"/></g></g>
+<g class="lab"><rect x="20" y="106" width="80" height="70" fill="#f4efe2"/><rect x="20" y="106" width="80" height="3.5" fill="#c9a96a"/><rect x="20" y="172.5" width="80" height="3.5" fill="#c9a96a"/>
+<text x="60" y="131" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="12" fill="#0c1a24">YOUR NAME</text>
+<text x="60" y="147" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="12" fill="#0c1a24">YOUR LABEL</text>
+<path d="M44 154H76" stroke="#c9a96a" stroke-width=".8"/>
+<text x="60" y="165" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="5" letter-spacing="1.6" fill="#4a5b66">AURA+999</text></g></g>
+<path d="M32 98V190" stroke="#fff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path class="stream" d="M60 -260V92" pathLength="100" stroke="url(#sg)" stroke-width="5" fill="none"/>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="none" stroke="#6fe3ea" stroke-width="1.8"/>
+<g class="cap"><rect x="43" y="13" width="34" height="17" rx="3" fill="#6fe3ea"/><path d="M48 13v17M54 13v17M60 13v17M66 13v17M72 13v17" stroke="#04222a" stroke-opacity=".22"/></g></svg><div class="word"><span style="--i:0">A</span><span style="--i:1">L</span><span style="--i:2">V</span><span style="--i:3">O</span><span style="--i:4">&nbsp;</span><span style="--i:5">C</span><span style="--i:6">U</span><span style="--i:7">S</span><span style="--i:8">T</span><span style="--i:9">O</span><span style="--i:10">M</span><span style="--i:11">S</span></div><div class="tag">YOUR BRAND. YOUR IDENTITY.</div></div>
 <div class="announce" id="announce" hidden></div>
 <header id="header"><div class="container"><nav>
  <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home"><svg viewBox="0 0 24 24" fill="none" stroke="#6fe3ea" stroke-width="1.6"><path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0c0-5-7-13-7-13z"/></svg><span>ALVO <span class="gold">CUSTOMS</span></span></a>
