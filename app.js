@@ -38,7 +38,13 @@ FILM=d.filmVideo||"";try{renderFilm()}catch(e){}
  const hv=document.querySelector(".hero-img");
  if(hv&&d.heroVideo){const v=String(d.heroVideo).replace(/["<>]/g,""),ym=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
   hv.style.cssText="position:relative;overflow:hidden";
-  hv.innerHTML=ym?`<iframe src="https://www.youtube.com/embed/${ym[1]}?autoplay=1&mute=1&loop=1&playlist=${ym[1]}&controls=0&playsinline=1&rel=0" allow="autoplay" style="position:absolute;inset:-2%;width:104%;height:104%;border:0;pointer-events:none"></iframe>`:`<video src="${v}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`}
+  hv.innerHTML=ym?`<iframe src="https://www.youtube.com/embed/${ym[1]}?autoplay=1&mute=1&loop=1&playlist=${ym[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" style="position:absolute;inset:-2%;width:104%;height:104%;border:0;pointer-events:none"></iframe>`:`<video src="${v}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`}
+ if(hv&&d.heroVideo&&hv.insertAdjacentHTML)hv.insertAdjacentHTML("beforeend",SND);
+ const nm=String(d.introNames||"Aarav & Meera").trim();
+ document.querySelectorAll(".inName").forEach(e=>{e.textContent=nm.toUpperCase();e.setAttribute("font-size",Math.max(5.5,Math.min(11,96/nm.length)).toFixed(1))});
+ document.querySelectorAll(".inMono").forEach(e=>{const pt=nm.split(/\s*[&+,]\s*|\s+and\s+/i).filter(Boolean);e.textContent=(pt[0]||"A")[0].toUpperCase()+" ♥ "+(pt[1]||"M")[0].toUpperCase()});
+ if(d.introPhoto){document.documentElement.style.setProperty("--introphoto",'url("'+d.introPhoto+'")');document.documentElement.classList.add("hasphoto")}
+ TILEV={Wedding:d.vidWedding,Restaurant:d.vidRestaurant,Hotel:d.vidHotel,Event:d.vidEvent};try{renderTiles()}catch(e){}
  if(d.heroImage)document.documentElement.style.setProperty("--hero-img",'url("'+d.heroImage+'")');
  const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
 }
@@ -112,7 +118,24 @@ const pcard=p=>`<article class="card">
   <div class="card-actions"><button class="btn outline" onclick="openProduct('${p.id}')">View Details</button><button class="btn" onclick="addToCart('${p.id}')">Add</button></div></div></article>`;
 const PAL=["#d6162b","#1f9d3a","#1c6fe0","#e8981a","#7a2ee0","#0f8f8a"];
 const postcard=(p,i)=>`<article class="card poster" style="--pc:${safe(p.color||PAL[i%PAL.length])}"><h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3><div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"></div><div class="pfoot"><span class="price">${money(p.price)}</span><button class="plus" aria-label="Add to bag" onclick="addToCart('${p.id}')">+</button></div></article>`;
-let rackCat="All",FILM="";
+let rackCat="All",FILM="",TILEV={};
+const YTR=/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/;
+const SND='<button class="snd" type="button" aria-label="Sound on/off">🔇</button>';
+function bgMedia(v,poster){
+ v=String(v||"").replace(/["<>]/g,"");if(!v||v.startsWith("fs:"))return "";
+ const m=v.match(YTR);
+ if(m)return `<iframe data-lazy data-src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" tabindex="-1"></iframe>${SND}`;
+ if(/\.(mp4|webm)(\?|$)/i.test(v))return `<video data-reel src="${v}"${poster?` poster="${safe(poster)}"`:""} muted loop playsinline preload="none"></video>${SND}`;
+ return "";
+}
+function renderTiles(){
+ document.querySelectorAll(".tile[data-cat]").forEach(t=>{
+  const c=t.dataset.cat,box=t.querySelector(".tvid");if(!box)return;
+  const pv=products.find(p=>p.active===true&&(p.category||"")===c&&p.video&&!String(p.video).startsWith("fs:"));
+  const h=bgMedia(TILEV[c]||(pv&&pv.video));
+  if(box.dataset.h!==h){box.dataset.h=h;box.innerHTML=h;t.classList.toggle("has",!!h)}
+ });
+}
 function setRack(c){rackCat=c;renderRack()}
 function renderRack(){
  const act=products.filter(p=>p.active===true);
@@ -122,14 +145,14 @@ function renderRack(){
  $("rackIn").innerHTML=list.map((p,i)=>`<div class="hang" style="animation-delay:-${(i%5)*.9}s" onclick="openProduct('${p.id}')"><i class="hook"></i><div class="hbody"><img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></div>`).join("");
  $("rack").hidden=!act.length;
 }
-function mvid(v){v=String(v).replace(/["<>]/g,"");const m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?`<iframe src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0" allow="autoplay" loading="lazy"></iframe>`:`<video src="${v}" autoplay muted loop playsinline></video>`}
+function mvid(v){v=String(v).replace(/["<>]/g,"");const m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?`<iframe src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" loading="lazy"></iframe>`:`<video src="${v}" autoplay muted loop playsinline></video>`}
 function renderFilm(){
  const fm=$("film"),act=products.filter(p=>p.active===true);
  const pv=act.find(p=>p.video&&!String(p.video).startsWith("fs:")),v=FILM||(pv&&pv.video);
  if(!v){fm.hidden=true;return}
  const imgs=[...act.map(p=>p.image),...projects.map(p=>p.image)].filter(Boolean).slice(0,12);
  const col=a=>a.length?`<div class="ftrack">${[...a,...a].map(s=>`<img src="${safe(s)}" alt="" loading="lazy" decoding="async">`).join("")}</div>`:"";
- if(fm.dataset.v!==v){$("filmMid").innerHTML=mvid(v);fm.dataset.v=v}
+ if(fm.dataset.v!==v){$("filmMid").innerHTML=mvid(v)+SND;fm.dataset.v=v}
  $("filmL").innerHTML=col(imgs.filter((_,i)=>i%2===0));$("filmR").innerHTML=col(imgs.filter((_,i)=>i%2===1));
  fm.hidden=false;
 }
@@ -142,9 +165,9 @@ function renderProducts(){
  const feat=act.filter(p=>p.featured===true);
  $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map((p,i)=>postcard(p,i)).join("")||'<div class="empty">New products coming soon.</div>';
  const mo=act.filter(p=>p.video);
- $("reelRow").innerHTML=mo.map(p=>`<article class="reel" onclick="openProduct('${p.id}')">${/\.(mp4|webm)(\?|$)/i.test(p.video)?`<video data-reel src="${safe(p.video)}" poster="${safe(p.image)}" muted loop playsinline preload="none"></video>`:`<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><span class="pl">▶</span>`}<div class="reel-info"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></article>`).join("");
+ $("reelRow").innerHTML=mo.map(p=>`<article class="reel" onclick="openProduct('${p.id}')">${bgMedia(p.video,p.image)||`<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><span class="pl">▶</span>`}<div class="reel-info"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></article>`).join("");
  $("motion").hidden=!mo.length;
- renderRack();renderFilm();
+ renderRack();renderFilm();renderTiles();
 }
 function setCat(c){curCat=c;renderProducts()}
 async function loadProducts(){
@@ -161,8 +184,8 @@ const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample
 function stageVid0(p){
  const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
  if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
- if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
- return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls autoplay muted loop playsinline preload="metadata"></video></div>`;
+ if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}&enablejsapi=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>${SND}</div>`;
+ return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls autoplay muted loop playsinline preload="metadata"></video>${SND}</div>`;
 }
 function pmShow(id,kind,btn){
  const p=products.find(x=>x.id===id);if(!p)return;
@@ -410,9 +433,11 @@ $("siteForm").addEventListener("submit",async e=>{
  e.preventDefault();const form=e.target,b=form.querySelector("button");b.disabled=true;
  try{
   owner();const f=new FormData(form),data={};
-  ["announce","heroLine1","heroLine2","heroText","heroVideo","filmVideo","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
+  ["announce","heroLine1","heroLine2","heroText","heroVideo","filmVideo","introNames","vidWedding","vidRestaurant","vidHotel","vidEvent","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
   const file=f.get("heroFile");if(file&&file.size)data.heroImage=await uploadImage(file,"settings");
   if(f.get("clearHero"))data.heroImage="";
+  const ip=f.get("introFile");if(ip&&ip.size)data.introPhoto=await uploadImage(ip,"settings");
+  if(f.get("clearIntro"))data.introPhoto="";
   await setDoc(doc(db,"settings","site"),data,{merge:true});msg("Site updated. Refresh the website to see changes.");
  }catch(err){msg(err.message)}finally{b.disabled=false}
 });

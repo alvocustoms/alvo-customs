@@ -27,24 +27,25 @@ nav{min-height:74px;display:flex;justify-content:space-between;align-items:cente
 .btn{display:inline-block;border:1px solid var(--acc);background:var(--acc);color:#fff;padding:15px 30px;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;border-radius:2px;transition:.25s;text-align:center}
 .btn:hover{background:transparent;color:var(--acc)}
 .outline{background:transparent;color:var(--acc)}.outline:hover{background:var(--acc);color:#fff}
-#intro{position:fixed;inset:0;z-index:999;background:radial-gradient(600px 420px at 50% 42%,#fff,var(--bg) 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;animation:introOut .6s cubic-bezier(.77,0,.18,1) 2.9s forwards}
+#intro{position:fixed;inset:0;z-index:999;background:radial-gradient(520px 420px at 50% 40%,#fff1d6,var(--bg) 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;overflow:hidden;animation:introOut .6s cubic-bezier(.77,0,.18,1) 3s forwards}
 .nointro #intro{display:none}
-.bottle{width:clamp(120px,32vw,160px);height:auto;overflow:visible}
-.stream{stroke-dasharray:100 100;stroke-dashoffset:100;animation:stream 1.35s cubic-bezier(.4,0,.2,1) .05s forwards}
-.wg{transform:translateY(215px);animation:fill 1s cubic-bezier(.25,.6,.3,1) .25s forwards}
-.wv{animation:wv .7s linear infinite}
-.cap{transform-origin:60px 22px;opacity:0;animation:capIn .45s cubic-bezier(.2,.7,.2,1) 1.3s forwards}
-.lab{clip-path:inset(0 100% 0 0);animation:lab .5s cubic-bezier(.4,0,.2,1) 1.65s forwards}
-#intro .word{display:flex;overflow:hidden;font:800 clamp(24px,7vw,44px)/1.3 var(--serif);letter-spacing:.14em}
-#intro .word span{display:inline-block;transform:translateY(115%);animation:rise .5s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(1.95s + var(--i)*.03s)}
+.scene{position:relative;width:min(290px,76vw);height:min(290px,76vw)}
+.arch{position:absolute;inset:0;width:100%;height:100%}
+.archp{stroke-dasharray:100;stroke-dashoffset:100;animation:draw .9s ease .1s forwards}
+.cframe{position:absolute;left:19%;right:19%;top:21%;bottom:14%;border-radius:999px 999px 6px 6px;overflow:hidden;background:var(--introphoto,none) center/cover,radial-gradient(#fdeccb,#efc98a);display:grid;place-items:center;opacity:0;transform:scale(.92);animation:popin .6s ease .45s forwards}
+.cframe b{font:800 clamp(34px,11vw,46px)/1 var(--serif);color:#6e1f38;letter-spacing:.06em}
+.hasphoto .cframe b{display:none}
+.sbottle{position:absolute;right:-6%;bottom:-4%;width:33%;opacity:0;transform:translateX(100px) rotate(12deg);animation:serve .8s cubic-bezier(.2,.8,.2,1) 1.05s forwards;filter:drop-shadow(0 8px 10px #0003)}
+.sbottle svg{width:100%;height:auto;display:block}
+.petal{position:absolute;top:-24px;width:10px;height:14px;border-radius:70% 0 70% 0;opacity:0;animation:fall 2.8s linear infinite}
+#intro .word{display:flex;overflow:hidden;font:800 clamp(24px,7vw,40px)/1.3 var(--serif);letter-spacing:.14em}
+#intro .word span{display:inline-block;transform:translateY(115%);animation:rise .5s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(1.8s + var(--i)*.03s)}
 #intro .word span:nth-child(n+6){color:var(--acc)}
-#intro .tag{font-size:10px;letter-spacing:.4em;color:var(--muted);opacity:0;animation:fade .5s ease 2.3s forwards}
+#intro .tag{font-size:10px;letter-spacing:.38em;color:var(--muted);opacity:0;animation:fade .5s ease 2.2s forwards}
 @keyframes introOut{to{transform:translateY(-100%);visibility:hidden}}
-@keyframes rise{to{transform:none}}@keyframes fade{to{opacity:1}}@keyframes up{to{opacity:1;transform:none}}
-@keyframes stream{0%{stroke-dashoffset:100}20%{stroke-dashoffset:0}78%{stroke-dashoffset:0}100%{stroke-dashoffset:-100}}
-@keyframes fill{to{transform:translateY(62px)}}@keyframes wv{to{transform:translateX(-60px)}}
-@keyframes capIn{0%{opacity:0;transform:translateY(-34px) rotate(-6deg)}30%{opacity:1}100%{opacity:1;transform:none}}
-@keyframes lab{to{clip-path:inset(0 0 0 0)}}@keyframes slide{to{transform:translateX(-50%)}}
+@keyframes rise{to{transform:none}}@keyframes fade{to{opacity:1}}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes popin{to{opacity:1;transform:none}}@keyframes serve{to{opacity:1;transform:none}}
+@keyframes fall{0%{transform:translateY(-24px) rotate(0);opacity:0}12%{opacity:.9}100%{transform:translateY(105vh) rotate(380deg);opacity:.9}}@keyframes slide{to{transform:translateX(-50%)}}
 .nointro{--base:.2s}
 .hl{opacity:0;transform:translateY(26px);animation:up .9s ease forwards;animation-delay:calc(var(--base) + var(--k)*.13s)}
 .hero{padding:56px 0 80px}
@@ -198,3 +199,14 @@ body{padding-bottom:38px}.float{bottom:58px}
 main,footer{overflow-x:clip}
 img,video,iframe{max-width:100%}
 .vwrap.tall{aspect-ratio:9/16;max-height:72vh;width:min(100%,360px);margin:auto}
+
+.snd{position:absolute;right:10px;bottom:10px;z-index:6;width:38px;height:38px;border-radius:50%;border:0;background:#000b;color:#fff;font-size:17px;line-height:1;cursor:pointer}
+.tile{overflow:hidden}
+.tvid{position:absolute;inset:0;z-index:0}
+.tvid video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.tvid iframe{position:absolute;top:50%;left:50%;width:300%;height:100%;transform:translate(-50%,-50%);border:0;pointer-events:none}
+.tile small{z-index:2}.tile h3,.tile p{position:relative;z-index:2}
+.tile.has{min-height:280px}
+.tile.has::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,#000c);z-index:1;pointer-events:none}
+.tile.has h3,.tile.has p,.tile.has small{color:#fff}
+.reel iframe{position:absolute;top:50%;left:50%;width:320%;height:100%;transform:translate(-50%,-50%);border:0;pointer-events:none}
