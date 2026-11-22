@@ -7,7 +7,9 @@
   if(!io||el.dataset.fx)return;el.dataset.fx=1;
   if(el.parentNode&&el.parentNode.classList&&el.parentNode.classList.contains("row"))return;
   el.classList.add("reveal");io.observe(el)}
- function scan(n){if(n.matches&&n.matches(SEL))add(n);n.querySelectorAll&&n.querySelectorAll(SEL).forEach(add)}
+ var vio=("IntersectionObserver" in window)?new IntersectionObserver(function(en){en.forEach(function(e){var v=e.target;if(e.isIntersecting){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()})},{threshold:.5}):null;
+ function reel(v){if(vio&&!v.dataset.vo){v.dataset.vo=1;vio.observe(v)}}
+ function scan(n){if(n.matches&&n.matches(SEL))add(n);if(n.querySelectorAll){n.querySelectorAll(SEL).forEach(add);n.querySelectorAll("video[data-reel]").forEach(reel)}}
  function carousel(row){
   if(row.dataset.car)return;row.dataset.car=1;
   var paused=false,vis=true,tick=0,hold;

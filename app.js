@@ -34,6 +34,10 @@ function applySettings(s){
  L("mail").forEach(a=>a.href="mailto:"+d.email);
  L("ig").forEach(a=>a.href=url(d.instagram,"https://instagram.com/"));
  L("yt").forEach(a=>a.href=url(d.youtube,"https://youtube.com/@"));
+const hv=document.querySelector(".hero-img");
+ if(hv&&d.heroVideo){const v=String(d.heroVideo).replace(/["<>]/g,""),ym=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+  hv.style.cssText="position:relative;overflow:hidden";
+  hv.innerHTML=ym?`<iframe src="https://www.youtube.com/embed/${ym[1]}?autoplay=1&mute=1&loop=1&playlist=${ym[1]}&controls=0&playsinline=1&rel=0" allow="autoplay" style="position:absolute;inset:-2%;width:104%;height:104%;border:0;pointer-events:none"></iframe>`:`<video src="${v}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`}
  if(d.heroImage)document.documentElement.style.setProperty("--hero-img",'url("'+d.heroImage+'")');
  const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
 }
@@ -88,6 +92,8 @@ function changeQty(id,n){
  const x=cart.find(x=>x.id===id);if(!x)return;
  x.qty+=n;if(x.qty<=0)cart=cart.filter(x=>x.id!==id);
  updateCount();renderCart();
+try{const cu=JSON.parse(localStorage.getItem("alvoUser")||"null"),cf=$("checkoutForm");if(cu&&cf.elements)["name","business","phone","address"].forEach(k=>{if(cf.elements[k]&&cu[k])cf.elements[k].value=cu[k]})}catch(e){}
+if(location.hash==="#bag")openCart();
 }
 function removeItem(id){cart=cart.filter(x=>x.id!==id);updateCount();renderCart()}
 function openCheckout(){
@@ -111,6 +117,9 @@ function renderProducts(){
  $("chips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===curCat?" on":""}" onclick="setCat('${safe(c)}')">${safe(c)}</button>`).join(""):"";
  const feat=act.filter(p=>p.featured===true);
  $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map(pcard).join("")||'<div class="empty">New products coming soon.</div>';
+ const mo=act.filter(p=>p.video);
+ $("reelRow").innerHTML=mo.map(p=>`<article class="reel" onclick="openProduct('${p.id}')">${/\.(mp4|webm)(\?|$)/i.test(p.video)?`<video data-reel src="${safe(p.video)}" poster="${safe(p.image)}" muted loop playsinline preload="none"></video>`:`<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><span class="pl">▶</span>`}<div class="reel-info"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></article>`).join("");
+ $("motion").hidden=!mo.length;
 }
 function setCat(c){curCat=c;renderProducts()}
 async function loadProducts(){
@@ -127,8 +136,8 @@ const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample
 function stageVid(p){
  const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
  if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
- if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
- return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls playsinline preload="metadata"></video></div>`;
+ if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+ return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls autoplay muted loop playsinline preload="metadata"></video></div>`;
 }
 function pmShow(id,kind,btn){
  const p=products.find(x=>x.id===id);if(!p)return;
@@ -138,7 +147,7 @@ function pmShow(id,kind,btn){
 }
 function openProduct(id){
  const p=products.find(x=>x.id===id);if(!p)return;
- $("pmBody").innerHTML=`<div class="pm-grid"><div><div id="pmStage">${stageImg(p)}</div>${p.video?`<div class="chips" style="margin:12px 0 0;justify-content:flex-start"><button class="chip on" onclick="pmShow('${p.id}','img',this)">Photo</button><button class="chip" onclick="pmShow('${p.id}','vid',this)">▶ Video</button></div>`:""}</div>
+ $("pmBody").innerHTML=`<div class="pm-grid"><div><div id="pmStage">${p.video?stageVid(p):stageImg(p)}</div>${p.video?`<div class="chips" style="margin:12px 0 0;justify-content:flex-start"><button class="chip${p.video?"":" on"}" onclick="pmShow('${p.id}','img',this)">Photo</button><button class="chip on" onclick="pmShow('${p.id}','vid',this)">▶ Video</button></div>`:""}</div>
  <div><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small><h2 style="font-size:30px;margin:4px 0">${safe(p.name)}</h2>
  <div class="price" style="font-size:26px">${money(p.price)} <small class="muted" style="font-size:13px;font-weight:400">/ bottle, incl. GST</small></div>
  <p class="muted">${safe(p.description||"")}</p>
@@ -148,6 +157,7 @@ function openProduct(id){
  <div class="card-actions"><button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button><button class="btn outline" onclick="buyNow('${p.id}');closeModal('productModal')">Buy Now</button></div>
  <button class="btn outline" style="width:100%;margin-top:10px" onclick="enquireProduct('${p.id}')">Customise on WhatsApp</button></div></div>`;
  $("productModal").classList.add("show");
+ if(String(p.video||"").startsWith("fs:"))playFs(p.video);
 }
 function enquireProduct(id){const p=products.find(x=>x.id===id);window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent("Hi ALVO CUSTOMS, I want a custom label for: "+(p?p.name:"")+". Please share details."),"_blank")}
 
@@ -164,6 +174,20 @@ async function loadProjects(){
  }catch(e){console.error(e)}
 }
 
+async function placeOrder(data){
+ let u=null;try{u=JSON.parse(localStorage.getItem("alvoUser")||"null")}catch(e){}
+ if(u&&u.uid&&!IS_ADMIN){
+  try{
+   const [A,F,Au]=await Promise.all([import(FB+"firebase-app.js"),import(FB+"firebase-firestore.js"),import(FB+"firebase-auth.js")]);
+   const ap=A.getApps().find(x=>x.name==="cust")||A.initializeApp(firebaseConfig,"cust");
+   const au=Au.getAuth(ap);await au.authStateReady();
+   if(au.currentUser&&au.currentUser.uid===u.uid){
+    return await F.addDoc(F.collection(F.getFirestore(ap),"orders"),{...data,uid:u.uid,email:au.currentUser.email||"",createdAt:F.serverTimestamp()});
+   }
+  }catch(e){console.error(e)}
+ }
+ return addDoc(collection(db,"orders"),{...data,createdAt:serverTimestamp()});
+}
 $("checkoutForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!cart.length)return msg("Cart is empty.");
  const f=new FormData(e.target);
@@ -173,7 +197,7 @@ $("checkoutForm").addEventListener("submit",async e=>{
 
 button.disabled=true;button.textContent="Saving order...";
  try{
-  const result=await addDoc(collection(db,"orders"),{...customer,items,total:amount,status:"New",createdAt:serverTimestamp()});
+  const result=await placeOrder({...customer,items,total:amount,status:"New"});
   let textMsg=`ALVO CUSTOMS ORDER\nOrder ID: ${result.id}\nName: ${customer.name}\nBusiness: ${customer.business}\nPhone: ${customer.phone}\nAddress: ${customer.address}\n\n`;
   items.forEach((x,i)=>textMsg+=`${i+1}. ${x.name} x ${x.quantity} = ${money(x.price*x.quantity)}\n`);
   textMsg+=`\nTOTAL: ${money(amount)}\nNote: ${customer.note}`;
@@ -353,7 +377,7 @@ $("siteForm").addEventListener("submit",async e=>{
  e.preventDefault();const form=e.target,b=form.querySelector("button");b.disabled=true;
  try{
   owner();const f=new FormData(form),data={};
-  ["announce","heroLine1","heroLine2","heroText","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
+  ["announce","heroLine1","heroLine2","heroText","heroVideo","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
   const file=f.get("heroFile");if(file&&file.size)data.heroImage=await uploadImage(file,"settings");
   if(f.get("clearHero"))data.heroImage="";
   await setDoc(doc(db,"settings","site"),data,{merge:true});msg("Site updated. Refresh the website to see changes.");

@@ -140,3 +140,13 @@ footer .copy{text-align:center;margin-top:34px;color:#8f867f;font-size:13px}
  .products,.projects{grid-template-columns:repeat(2,1fr)}.hero-chip{left:12px}
 }
 @media(max-width:520px){.products,.projects{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.logo b{font-size:25px}.hero-actions .btn{width:100%}.float{padding:11px 15px;font-size:14px;bottom:14px}.tile{min-height:190px}section{padding:60px 0}}
+
+.hero-img{position:relative}
+.reels{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 4% 16px;-webkit-overflow-scrolling:touch}
+.reels::-webkit-scrollbar{height:5px}.reels::-webkit-scrollbar-thumb{background:var(--line)}
+.reel{flex:0 0 min(62vw,240px);aspect-ratio:9/16;position:relative;overflow:hidden;background:#000;cursor:pointer;scroll-snap-align:start;border-radius:3px}
+.reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel-info{position:absolute;left:0;right:0;bottom:0;padding:34px 14px 14px;background:linear-gradient(transparent,#000c);color:#fff;display:flex;justify-content:space-between;gap:8px;align-items:flex-end}
+.reel-info b{font:700 15px var(--serif)}.reel-info span{color:#f3e3c8;font-weight:600}
+.reel .pl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:#fffe;color:var(--acc);display:grid;place-items:center;font-size:18px}
+.navright .smallbtn{white-space:nowrap}
