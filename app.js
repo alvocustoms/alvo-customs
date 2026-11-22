@@ -1,36 +1,387 @@
-import * as F from "./rest.js";
-import {OWNER_EMAIL,money,esc,qs,qsa,toast,getCart,saveCart,addCart,updateCartCount,categoryLabel} from "./fx.js";
-const $=qs;
-const path=location.pathname.split("/").pop()||"index.html";
-const user=()=>F.auth.currentUser;
-const isOwner=u=>u?.email?.toLowerCase()===OWNER_EMAIL;
-function header(){const el=$("#siteHeader");if(!el)return;el.innerHTML=`<div class="topline">CUSTOM LABEL WATER BOTTLES · MADE FOR YOUR BRAND</div><header class="header"><div class="container nav"><a class="logo" href="index.html">ALVO<small>CUSTOMS</small></a><button class="menu-btn" id="menuBtn">☰</button><nav class="navlinks" id="navLinks"><a href="index.html">Home</a><a href="products.html">Collection</a><a href="custom.html">Custom labels</a><a href="projects.html">Our work</a><a href="contact.html">Contact</a></nav><div class="navright"><a class="account-link" href="account.html">Account</a><a href="account.html">Bag <span data-cart-count>0</span></a></div></div></header>`;$("#menuBtn")?.addEventListener("click",()=>$("#navLinks").classList.toggle("open"));updateCartCount()}
-function footer(){const el=$("#siteFooter");if(el)el.innerHTML=`<footer class="footer"><div class="container"><div class="footer-grid"><div><a class="logo" href="index.html">ALVO<small>CUSTOMS</small></a><p>Custom-label water bottles for hospitality, weddings and meaningful occasions.</p></div><div><h3>Explore</h3><p><a href="products.html">Collection</a></p><p><a href="custom.html">Custom labels</a></p><p><a href="projects.html">Our work</a></p></div><div><h3>Connect</h3><p><a href="contact.html">Contact</a></p><p><a href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a></p><p><a href="account.html">My account</a></p></div></div><div class="footer-bottom">© ${new Date().getFullYear()} ALVO Customs. Product images and designs are illustrative samples. Final price, taxes, transport and order terms are confirmed before order acceptance.</div></div></footer>`}
-header();footer();
-async function fetchProducts(){const snap=await F.getDocs(F.query(F.collection(F.db,"products"),F.where("active","==",true)));return snap.docs.map(d=>({id:d.id,...d.data()}))}
-function card(p){return `<article class="product-card"><a href="product.html?id=${encodeURIComponent(p.id)}"><div class="product-media">${p.image?`<img loading="lazy" src="${esc(p.image)}" alt="${esc(p.name)}">`:""}${p.video?`<video muted loop playsinline autoplay preload="metadata" src="${esc(p.video)}"></video>`:""}</div></a><div class="product-info"><span class="tag">${esc(categoryLabel(p.category||p.size))}</span><h3><a href="product.html?id=${encodeURIComponent(p.id)}">${esc(p.name)}</a></h3><p>${esc(p.description||"Custom label bottle")}</p><div class="product-meta"><b>${money(p.price)}</b><span>${esc(p.size||"Custom size")}</span></div><div class="card-actions"><a class="btn btn-outline" href="product.html?id=${encodeURIComponent(p.id)}">View details</a><button class="btn" data-add="${esc(p.id)}">Enquire</button></div></div></article>`}
-async function renderHome(){const el=$("#featuredProducts");if(!el)return;try{const ps=(await fetchProducts()).slice(0,3);el.innerHTML=ps.length?ps.map(card).join(""):`<div class="empty">Our collection is being prepared. <a href="custom.html">Send a custom enquiry</a>.</div>`;bindAdd()}catch(e){el.innerHTML='<div class="empty">Could not load products. Please try again later.</div>';console.error(e)}}
-async function renderProducts(){const grid=$("#productGrid");if(!grid)return;try{const ps=await fetchProducts();const cats=["All",...new Set(ps.map(p=>p.category||"Custom"))];$("#filters").innerHTML=cats.map((c,i)=>`<button class="filter ${i===0?"active":""}" data-filter="${esc(c)}">${esc(categoryLabel(c))}</button>`).join("");const draw=c=>{const filtered=c==="All"?ps:ps.filter(p=>(p.category||"Custom")===c);grid.innerHTML=filtered.length?filtered.map(card).join(""):'<div class="empty">No products in this category yet.</div>';bindAdd();};draw("All");qsa("[data-filter]").forEach(b=>b.onclick=()=>{qsa("[data-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");draw(b.dataset.filter)})}catch(e){grid.innerHTML='<div class="empty">Products could not be loaded.</div>';console.error(e)}}
-function bindAdd(){qsa("[data-add]").forEach(b=>b.onclick=async()=>{try{const d=await F.getDoc(F.doc(F.db,"products",b.dataset.add));if(d.exists())addCart({id:d.id,...d.data()})}catch{toast("Please try again")}})}
-async function renderDetail(){const el=$("#productDetail");if(!el)return;const id=new URLSearchParams(location.search).get("id");if(!id){el.innerHTML='<div class="empty">Product not found. <a href="products.html">Back to collection</a></div>';return}try{const d=await F.getDoc(F.doc(F.db,"products",id));if(!d.exists()){el.innerHTML='<div class="empty">This product is no longer available.</div>';return}const p={id:d.id,...d.data()};document.title=`${p.name} | ALVO Customs`;el.innerHTML=`<section class="detail"><div class="detail-media">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.name)}">`:""}${p.video?`<video src="${esc(p.video)}" autoplay muted loop playsinline controls></video>`:""}</div><div class="detail-copy"><div class="eyebrow">${esc(categoryLabel(p.category||"ALVO COLLECTION"))}</div><h1>${esc(p.name)}</h1><div class="detail-price">${money(p.price)} <span class="small">/ listed sample price</span></div><p>${esc(p.description||"Custom-label water bottle.")}</p><div class="included">${esc(p.details||"GST, transport, minimum quantity and final customisation charges will be confirmed in your quotation. No unconfirmed inclusions are assumed.")}</div><p><b>Size:</b> ${esc(p.size||"As selected")}<br><b>Customisation:</b> Label design and artwork confirmed before production.</p><button class="btn" id="addDetail">Add to enquiry bag</button> <a class="btn btn-outline" href="custom.html">Request custom quote</a></div></section>`;$("#addDetail").onclick=()=>addCart(p)}catch(e){el.innerHTML='<div class="empty">Unable to load this product.</div>';console.error(e)}}
-async function saveEnquiry(data,type){const payload={...data,type,status:"New",createdAt:F.serverTimestamp(),createdAtClient:new Date().toISOString()};if(user()){payload.customerUid=user().uid;payload.customerEmail=user().email||""}await F.addDoc(F.collection(F.db,"enquiries"),payload)}
-function formData(form){return Object.fromEntries(new FormData(form).entries())}
-$("#customForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector("button[type=submit]");b.disabled=true;try{await saveEnquiry(formData(f),"Custom label enquiry");f.reset();toast("Enquiry sent. ALVO will contact you.")}catch(err){console.error(err);toast("Could not send enquiry. Please check Firebase rules.")}finally{b.disabled=false}});
-$("#contactForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector("button");b.disabled=true;try{await saveEnquiry(formData(f),"Contact message");f.reset();toast("Message sent successfully.")}catch(err){console.error(err);toast("Message could not be sent. Please try again.")}finally{b.disabled=false}});
-async function authGoogle(){await F.signInWithPopup(F.auth,F.googleProvider)}
-let confirmation=null,recaptcha=null;
-function setupAccount(){if(!$("#authPanel"))return;qsa("[data-auth-tab]").forEach(b=>b.onclick=()=>{qsa("[data-auth-tab]").forEach(x=>x.classList.toggle("active",x===b));$("#googleAuth").classList.toggle("hidden",b.dataset.authTab!=="google");$("#phoneAuth").classList.toggle("hidden",b.dataset.authTab!=="phone")});$("#googleLogin").onclick=async()=>{try{await authGoogle()}catch(e){toast(e.message||"Google sign-in failed")}};$("#phoneForm").onsubmit=async e=>{e.preventDefault();try{const raw=$("#phoneNumber").value.trim();const phone=raw.startsWith("+")?raw:"+91"+raw.replace(/\D/g,"");if(!/^\+\d{10,15}$/.test(phone))throw Error("Enter a valid mobile number with country code.");if(!recaptcha)recaptcha=new F.RecaptchaVerifier(F.auth,"recaptcha-container",{size:"normal"});confirmation=await F.signInWithPhoneNumber(F.auth,phone,recaptcha);$("#otpForm").classList.remove("hidden");toast("OTP sent.")}catch(err){console.error(err);toast(err.message||"Could not send OTP");if(recaptcha){try{await recaptcha.clear()}catch{}recaptcha=null}}};$("#otpForm").onsubmit=async e=>{e.preventDefault();try{await confirmation.confirm($("#otpCode").value.trim());toast("Mobile verified.")}catch(err){toast("Incorrect OTP. Try again.")}}}
-async function renderAccount(u){if(!$("#accountContent"))return;const panel=$("#accountContent"),authPanel=$("#authPanel");if(!u){panel.classList.add("hidden");authPanel.classList.remove("hidden");return}authPanel.classList.add("hidden");panel.classList.remove("hidden");panel.innerHTML=`<div class="panel"><h2>Hello, ${esc(u.displayName||u.phoneNumber||"there")}.</h2><p>${esc(u.email||u.phoneNumber||"Signed in")}</p><button class="btn btn-outline" id="logout">Sign out</button><h2 style="margin-top:35px">Your orders</h2><div id="myOrders">Loading orders…</div><h2 style="margin-top:35px">Your enquiries</h2><div id="myEnquiries">Loading enquiries…</div><h2 style="margin-top:35px">Enquiry bag</h2><div id="cartItems"></div><button class="btn" id="placeOrder">Submit order request</button></div>`;$("#logout").onclick=()=>F.signOut(F.auth);await loadMyOrders(u);await loadMyEnquiries(u);renderCart()}
-async function loadMyOrders(u){const el=$("#myOrders");try{const q=F.query(F.collection(F.db,"orders"),F.where("customerUid","==",u.uid));const s=await F.getDocs(q);const arr=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAtClient||"").localeCompare(a.createdAtClient||""));el.innerHTML=arr.length?arr.map(o=>`<div class="order"><div class="product-meta"><b>Order #${esc(o.id.slice(0,8).toUpperCase())}</b><span class="status">${esc(o.status||"New")}</span></div><p>${(o.items||[]).map(i=>`${esc(i.name)} × ${Number(i.quantity)||1}`).join("<br>")}</p><b>${money(o.total)}</b><p class="small">${esc(o.createdAtClient||"")}</p></div>`).join(""):'<p>No orders yet.</p>'}catch(e){console.error(e);el.textContent="Orders unavailable. Check Firestore rules."}}
-async function loadMyEnquiries(u){const el=$("#myEnquiries");try{const q=F.query(F.collection(F.db,"enquiries"),F.where("customerUid","==",u.uid));const s=await F.getDocs(q);el.innerHTML=s.empty?"<p>No enquiries yet.</p>":s.docs.map(d=>{const x=d.data();return `<div class="order"><b>${esc(x.type||"Enquiry")}</b><span class="status">${esc(x.status||"New")}</span><p>${esc(x.message||x.occasion||"Request received")}</p></div>`}).join("")}catch(e){el.textContent="Enquiries unavailable."}}
-function renderCart(){const el=$("#cartItems");if(!el)return;const c=getCart();el.innerHTML=c.length?c.map(x=>`<div class="cart-line"><img src="${esc(x.image)}" alt=""><div><b>${esc(x.name)}</b><p class="small">${money(x.price)} × ${x.quantity}</p></div><button class="filter" data-remove="${esc(x.id)}">Remove</button></div>`).join("")+`<p><b>Indicative total: ${money(c.reduce((s,x)=>s+x.price*x.quantity,0))}</b></p>`:'<p>Your bag is empty. Browse the collection first.</p>';qsa("[data-remove]").forEach(b=>b.onclick=()=>{saveCart(getCart().filter(x=>x.id!==b.dataset.remove));renderCart()});$("#placeOrder")?.toggleAttribute("disabled",!c.length);$("#placeOrder")?.addEventListener("click",placeOrder,{once:true})}
-async function placeOrder(){const u=user();if(!u){toast("Please sign in first");return}const cart=getCart();if(!cart.length)return;const total=cart.reduce((s,x)=>s+x.price*x.quantity,0);try{const ref=await F.addDoc(F.collection(F.db,"orders"),{customerUid:u.uid,customerEmail:u.email||"",customerName:u.displayName||"",customerPhone:u.phoneNumber||"",items:cart.map(x=>({productId:x.id,name:x.name,price:x.price,quantity:x.quantity})),total,status:"New",createdAt:F.serverTimestamp(),createdAtClient:new Date().toISOString(),paymentStatus:"Not paid"});saveCart([]);toast("Order request submitted. Ref "+ref.id.slice(0,8));await loadMyOrders(u);renderCart()}catch(e){console.error(e);toast("Order could not be submitted. Check Firestore rules.")}}
-function setupAdmin(){if(!$("#adminLogin"))return;$("#adminGoogle").onclick=async()=>{try{await authGoogle()}catch(e){toast(e.message||"Login failed")}};qsa("[data-admin-tab]").forEach(b=>b.onclick=()=>{qsa("[data-admin-tab]").forEach(x=>x.classList.toggle("active",x===b));["products","orders","enquiries"].forEach(k=>$(`#admin${k[0].toUpperCase()+k.slice(1)}`).classList.toggle("hidden",k!==b.dataset.adminTab))});$("#resetProduct").onclick=()=>$("#productForm").reset();$("#productForm").onsubmit=saveProduct}
-async function uploadFile(file,folder){if(!file)return "";if(file.size>25*1024*1024)throw Error("File must be under 25 MB.");const clean=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const r=F.ref(F.storage,`${folder}/${Date.now()}_${clean}`);const task=F.uploadBytesResumable(r,file);await new Promise((resolve,reject)=>{task.on("state_changed",s=>{const pct=Math.round(s.bytesTransferred/s.totalBytes*100);const b=$("#productForm button[type=submit]");if(b)b.textContent=`Uploading ${pct}%`},reject,resolve)});return await F.getDownloadURL(r)}
-async function saveProduct(e){e.preventDefault();const f=e.currentTarget,b=f.querySelector('button[type="submit"]');b.disabled=true;try{const x=formData(f),id=x.id;const imageFile=f.elements.imageFile.files[0],videoFile=f.elements.videoFile.files[0];delete x.id;delete x.imageFile;delete x.videoFile;x.price=Number(x.price)||0;x.active=f.elements.active.checked;x.updatedAt=F.serverTimestamp();if(imageFile)x.image=await uploadFile(imageFile,"products/images");if(videoFile)x.video=await uploadFile(videoFile,"products/videos");if(!x.image)delete x.image;if(!x.video)delete x.video;if(id)await F.updateDoc(F.doc(F.db,"products",id),x);else{x.createdAt=F.serverTimestamp();await F.addDoc(F.collection(F.db,"products"),x)}f.reset();toast("Product saved");await loadAdminProducts()}catch(err){console.error(err);toast(err.message||"Could not save product")}finally{b.disabled=false;b.textContent="Save product"}}
-async function loadAdminProducts(){const el=$("#adminProductList");if(!el)return;try{const s=await F.getDocs(F.collection(F.db,"products"));el.innerHTML=s.empty?"<p>No products added yet.</p>":s.docs.map(d=>{const p=d.data();return `<div class="admin-row"><div><b>${esc(p.name)}</b><div class="small">${money(p.price)} · ${esc(p.size||"")} · ${p.active===false?"Hidden":"Live"}</div></div><div><button class="filter" data-edit="${d.id}">Edit</button> <button class="filter" data-delete="${d.id}">Delete</button></div></div>`}).join("");qsa("[data-edit]").forEach(b=>b.onclick=async()=>{const d=await F.getDoc(F.doc(F.db,"products",b.dataset.edit));const p=d.data(),f=$("#productForm");Object.entries(p).forEach(([k,v])=>{if(f.elements[k]&&typeof v!=="object")f.elements[k].value=v});f.elements.id.value=d.id;f.elements.active.checked=p.active!==false;window.scrollTo({top:0,behavior:"smooth"})});qsa("[data-delete]").forEach(b=>b.onclick=async()=>{if(confirm("Delete this product?")){await F.deleteDoc(F.doc(F.db,"products",b.dataset.delete));loadAdminProducts()}})}catch(e){console.error(e);el.textContent="Could not load products. Check Firestore rules."}}
-async function loadAdminOrders(){const el=$("#adminOrderList");try{const s=await F.getDocs(F.collection(F.db,"orders"));const a=s.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>(y.createdAtClient||"").localeCompare(x.createdAtClient||""));el.innerHTML=a.length?a.map(o=>`<div class="order"><div class="product-meta"><b>#${esc(o.id.slice(0,8))} · ${esc(o.customerName||o.customerEmail||o.customerPhone||"Customer")}</b><b>${money(o.total)}</b></div><p>${(o.items||[]).map(i=>`${esc(i.name)} × ${i.quantity}`).join(", ")}</p><div class="admin-grid"><div class="small">${esc(o.customerEmail||"")} ${esc(o.customerPhone||"")}</div><div><select data-status="${o.id}">${["New","Confirmed","In Production","Ready for Dispatch","Shipped","Delivered","Cancelled"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select><button class="filter" data-save-status="${o.id}">Update</button></div></div></div>`).join(""):"<p>No orders received.</p>";qsa("[data-save-status]").forEach(b=>b.onclick=async()=>{const status=$(`[data-status="${b.dataset.saveStatus}"]`).value;await F.updateDoc(F.doc(F.db,"orders",b.dataset.saveStatus),{status,updatedAt:F.serverTimestamp()});toast("Order status updated")})}catch(e){console.error(e);el.textContent="Could not load orders. Check Firestore rules."}}
-async function loadAdminEnquiries(){const el=$("#adminEnquiryList");try{const s=await F.getDocs(F.collection(F.db,"enquiries"));el.innerHTML=s.empty?"<p>No enquiries.</p>":s.docs.map(d=>{const x=d.data();return `<div class="order"><div class="product-meta"><b>${esc(x.type||"Enquiry")}</b><span class="status">${esc(x.status||"New")}</span></div><p>${esc(x.name||"")} · ${esc(x.phone||x.contact||"")} · ${esc(x.city||"")}</p><p>${esc(x.message||"")}</p></div>`}).join("")}catch(e){console.error(e);el.textContent="Could not load enquiries."}}
-async function onAuth(u){if($("#accountContent"))await renderAccount(u);if($("#adminLogin")){if(isOwner(u)){ $("#adminLogin").classList.add("hidden");$("#adminApp").classList.remove("hidden");await loadAdminProducts();await loadAdminOrders();await loadAdminEnquiries()}else{$("#adminLogin").classList.remove("hidden");$("#adminApp").classList.add("hidden");if(u)toast("This account is not authorised for admin access.")}}}
-setupAccount();setupAdmin();F.onAuthStateChanged(F.auth,onAuth);
-if(path==="index.html")renderHome();if(path==="products.html")renderProducts();if(path==="product.html")renderDetail();
+
+const IS_ADMIN=!!document.getElementById("adminPage");
+const FB="https://www.gstatic.com/firebasejs/11.0.2/";
+const imp=(r,s)=>IS_ADMIN?import(FB+s):import(r).catch(()=>import(FB+s));
+let M1,M2,M3;
+try{[M1,M2,M3]=await Promise.all([imp("./rest.js","firebase-app.js"),imp("./rest.js","firebase-firestore.js"),IS_ADMIN?import(FB+"firebase-auth.js"):{}])}
+catch(e){document.querySelectorAll("#featuredRow,#productGrid,#projectGrid").forEach(x=>{x.innerHTML='<div class="empty">Could not load ('+e.message+'). Please reload.</div>'});throw e}
+const {initializeApp}=M1;
+const {getFirestore,collection,addDoc,getDocs,doc,deleteDoc,updateDoc,getDoc,setDoc,serverTimestamp,query,orderBy}=M2;
+const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=M3;
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCKBprdUJsrvbvCHoD-EjyZihsenZaJ3LI",
+  authDomain: "alvocustoms-c4952.firebaseapp.com",
+  projectId: "alvocustoms-c4952",
+  storageBucket: "alvocustoms-c4952.firebasestorage.app",
+  messagingSenderId: "717785800659",
+  appId: "1:717785800659:web:86c2445cbce63a24275926",
+  measurementId: "G-H1RW1SZ7K5"
+};
+const OWNER_EMAIL="alvo.customs@gmail.com";
+let WHATSAPP="919664056178";
+const DEFAULTS={announce:"Custom label water bottles · Made for your brand",heroLine1:"Your name.",heroLine2:"On every bottle.",heroText:"Premium custom-label packaged water for weddings, hotels, restaurants and events. You bring the brand, we bottle it beautifully.",phone:"+91 96640 56178",whatsapp:"919664056178",email:"alvo.customs@gmail.com",instagram:"alvocustoms",youtube:"alvocustoms"};
+const byNew=(a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
+const url=(v,base)=>/^https?:/.test(v)?v:base+String(v).replace(/^@/,"");
+function applySettings(s){
+ const d={...DEFAULTS};Object.keys(s||{}).forEach(k=>{if(s[k])d[k]=s[k]});
+ document.querySelectorAll("[data-s]").forEach(el=>{const v=d[el.dataset.s];if(v)el.textContent=v});
+ const digits=String(d.whatsapp).replace(/\D/g,"");if(digits)WHATSAPP=digits;
+ const L=n=>document.querySelectorAll('[data-link="'+n+'"]');
+ L("wa").forEach(a=>a.href="https://wa.me/"+WHATSAPP);
+ L("tel").forEach(a=>a.href="tel:+"+WHATSAPP);
+ L("mail").forEach(a=>a.href="mailto:"+d.email);
+ L("ig").forEach(a=>a.href=url(d.instagram,"https://instagram.com/"));
+ L("yt").forEach(a=>a.href=url(d.youtube,"https://youtube.com/@"));
+ if(d.heroImage)document.documentElement.style.setProperty("--hero-img",'url("'+d.heroImage+'")');
+ const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
+}
+async function loadSettings(){try{const s=await getDoc(doc(db,"settings","site"));const d=s.exists()?s.data():{};try{localStorage.setItem("alvoS",JSON.stringify(d))}catch(e){}return d}catch(e){console.error(e);return {}}}
+/* ===================================== */
+const app=initializeApp(firebaseConfig);
+const auth=IS_ADMIN?getAuth(app):null;
+const db=getFirestore(app);
+const provider=new GoogleAuthProvider();
+
+let products=[],projects=[],currentUser=null,cart=[];
+try{cart=JSON.parse(localStorage.getItem("alvoCart")||"[]")}catch(e){}
+
+const $=id=>document.getElementById(id)||document.createElement("div");
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const msg=s=>alert(s);
+
+function owner(){
+ if(!currentUser||currentUser.email.toLowerCase()!==OWNER_EMAIL.toLowerCase())throw Error("Admin access denied.");
+}
+function showTab(id){
+
+["productsAdmin","ordersAdmin","enquiriesAdmin","projectsAdmin","siteAdmin","settingsAdmin"].forEach(x=>$(x).hidden=x!==id);
+}
+function closeModal(id){$(id).classList.remove("show")}
+function openCart(){$("cartModal").classList.add("show")}
+function updateCount(){$("cartCount").textContent=cart.reduce((s,x)=>s+x.qty,0);try{localStorage.setItem("alvoCart",JSON.stringify(cart))}catch(e){}}
+function total(){return cart.reduce((s,x)=>s+x.price*x.qty,0)}
+
+function renderCart(){
+ $("cartItems").innerHTML=cart.length?cart.map(x=>`
+ <div class="cartrow">
+  <div><b>${safe(x.name)}</b><br><small>${money(x.price)} each</small>
+  <br><button class="smallbtn" onclick="removeItem('${x.id}')">Remove</button></div>
+  <div><button class="smallbtn" onclick="changeQty('${x.id}',-1)">−</button>
+  ${x.qty} <button class="smallbtn" onclick="changeQty('${x.id}',1)">+</button></div>
+ </div>`).join(""):'<div class="empty">Your cart is empty.</div>';
+ $("cartTotal").textContent=money(total());
+}
+function addToCart(id,silent){
+ const q=Math.max(1,parseInt(document.getElementById("q_"+id)?.value)||1);
+ const p=products.find(x=>x.id===id);
+ if(!p||!p.active)return msg("Product unavailable.");
+ const item=cart.find(x=>x.id===id);
+ if(item)item.qty+=q;
+ else cart.push({id:p.id,name:p.name,price:Number(p.price),qty:q});
+ updateCount();renderCart();if(!silent)toast("Added to cart ✓");
+}
+function buyNow(id){addToCart(id,true);openCart()}
+function changeQty(id,n){
+ const x=cart.find(x=>x.id===id);if(!x)return;
+ x.qty+=n;if(x.qty<=0)cart=cart.filter(x=>x.id!==id);
+ updateCount();renderCart();
+}
+function removeItem(id){cart=cart.filter(x=>x.id!==id);updateCount();renderCart()}
+function openCheckout(){
+ if(!cart.length)return msg("Your cart is empty.");
+ closeModal("cartModal");$("checkoutModal").classList.add("show");
+}
+
+let curCat="All",catSet=false;
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
+const pcard=p=>`<article class="card">
+ <div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async" onerror="this.src='https://placehold.co/600x450/0c1a24/6fe3ea?text=ALVO'"></div>
+ <div class="card-body"><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small>
+  <h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3>
+  <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:400">/ bottle</small></div>
+  <div class="card-actions"><button class="btn outline" onclick="openProduct('${p.id}')">View Details</button><button class="btn" onclick="addToCart('${p.id}')">Add</button></div></div></article>`;
+function renderProducts(){
+ const act=products.filter(p=>p.active===true);
+ const list=curCat==="All"?act:act.filter(p=>(p.category||"Custom")===curCat);
+ $("productGrid").innerHTML=list.map(pcard).join("")||'<div class="empty">No products in this category yet.</div>';
+ const cats=[...new Set(act.map(p=>p.category||"Custom"))];
+ $("chips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===curCat?" on":""}" onclick="setCat('${safe(c)}')">${safe(c)}</button>`).join(""):"";
+ const feat=act.filter(p=>p.featured===true);
+ $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map(pcard).join("")||'<div class="empty">New products coming soon.</div>';
+}
+function setCat(c){curCat=c;renderProducts()}
+async function loadProducts(){
+ try{
+  if(!IS_ADMIN&&!products.length){try{const ca=sessionStorage.getItem("alvoP");if(ca){products=JSON.parse(ca);if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}renderProducts()}}catch(e){}}
+  const snap=await getDocs(collection(db,"products"));
+  products=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
+  if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}
+  if(!IS_ADMIN)try{sessionStorage.setItem("alvoP",JSON.stringify(products))}catch(e){}
+  renderProducts();renderAdminProducts();
+ }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded ('+safe(e.message)+'). Please reload.</div>'}
+}
+const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
+function stageVid(p){
+ const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+ if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
+ if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+ return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls playsinline preload="metadata"></video></div>`;
+}
+function pmShow(id,kind,btn){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ $("pmStage").innerHTML=kind==="vid"?stageVid(p):stageImg(p);
+ if(kind==="vid"&&String(p.video).startsWith("fs:"))playFs(p.video);
+ btn.parentNode.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));btn.classList.add("on");
+}
+function openProduct(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ $("pmBody").innerHTML=`<div class="pm-grid"><div><div id="pmStage">${stageImg(p)}</div>${p.video?`<div class="chips" style="margin:12px 0 0;justify-content:flex-start"><button class="chip on" onclick="pmShow('${p.id}','img',this)">Photo</button><button class="chip" onclick="pmShow('${p.id}','vid',this)">▶ Video</button></div>`:""}</div>
+ <div><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small><h2 style="font-size:30px;margin:4px 0">${safe(p.name)}</h2>
+ <div class="price" style="font-size:26px">${money(p.price)} <small class="muted" style="font-size:13px;font-weight:400">/ bottle, incl. GST</small></div>
+ <p class="muted">${safe(p.description||"")}</p>
+ ${p.details?`<p class="muted" style="white-space:pre-line;margin-top:8px">${safe(p.details)}</p>`:""}
+ <ul class="spec"><li>This is a <b>sample design</b>. Your final label is made with your own logo and details.</li><li>Design is shared for your approval before production.</li><li>Bulk pricing on request.</li></ul>
+ <div class="buyrow"><label class="muted" for="q_${p.id}">Qty</label><input class="qty" id="q_${p.id}" type="number" min="1" value="1" inputmode="numeric"></div>
+ <div class="card-actions"><button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button><button class="btn outline" onclick="buyNow('${p.id}');closeModal('productModal')">Buy Now</button></div>
+ <button class="btn outline" style="width:100%;margin-top:10px" onclick="enquireProduct('${p.id}')">Customise on WhatsApp</button></div></div>`;
+ $("productModal").classList.add("show");
+}
+function enquireProduct(id){const p=products.find(x=>x.id===id);window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent("Hi ALVO CUSTOMS, I want a custom label for: "+(p?p.name:"")+". Please share details."),"_blank")}
+
+async function loadProjects(){
+ try{
+  const snap=await getDocs(collection(db,"clients"));
+  projects=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
+  const card=p=>`<article class="card"><img class="project-image" loading="lazy" decoding="async" src="${safe(p.image)}" alt="${safe(p.name)}">
+   <div class="card-body"><h3>${safe(p.name)}</h3><p>${safe(p.description||"")}</p></div></article>`;
+  $("projectGrid").innerHTML=projects.map(card).join("")||'<div class="empty">Our projects will appear here.</div>';
+  $("projectRow").innerHTML=projects.slice(0,8).map(card).join("");
+  $("workTeaser").hidden=!projects.length;
+  renderAdminProjects();
+ }catch(e){console.error(e)}
+}
+
+$("checkoutForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!cart.length)return msg("Cart is empty.");
+ const f=new FormData(e.target);
+ const customer={name:f.get("name").trim(),business:f.get("business").trim(),phone:f.get("phone").trim(),address:f.get("address").trim(),note:f.get("note").trim()};
+ const items=cart.map(x=>({productId:x.id,name:x.name,price:x.price,quantity:x.qty}));
+ const amount=total(),button=e.target.querySelector("button[type=submit]");
+
+button.disabled=true;button.textContent="Saving order...";
+ try{
+  const result=await addDoc(collection(db,"orders"),{...customer,items,total:amount,status:"New",createdAt:serverTimestamp()});
+  let textMsg=`ALVO CUSTOMS ORDER\nOrder ID: ${result.id}\nName: ${customer.name}\nBusiness: ${customer.business}\nPhone: ${customer.phone}\nAddress: ${customer.address}\n\n`;
+  items.forEach((x,i)=>textMsg+=`${i+1}. ${x.name} x ${x.quantity} = ${money(x.price*x.quantity)}\n`);
+  textMsg+=`\nTOTAL: ${money(amount)}\nNote: ${customer.note}`;
+  cart=[];updateCount();renderCart();e.target.reset();closeModal("checkoutModal");
+  window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(textMsg),"_blank");
+  msg("Order saved. Please press Send in WhatsApp to confirm.");
+ }catch(err){console.error(err);msg("Order could not be saved. Please try again.")}
+ finally{button.disabled=false;button.textContent="Place Order on WhatsApp"}
+});
+
+$("enquiryForm").addEventListener("submit",e=>{
+ e.preventDefault();const f=new FormData(e.target);
+ addDoc(collection(db,"enquiries"),{name:f.get("name"),business:f.get("business"),phone:f.get("phone"),qty:f.get("qty"),message:f.get("message"),createdAt:serverTimestamp()}).catch(console.error);
+ const textMsg=`ALVO CUSTOMS ENQUIRY\nName: ${f.get("name")}\nBusiness: ${f.get("business")}\nPhone: ${f.get("phone")}\nQuantity: ${f.get("qty")}\nRequirement: ${f.get("message")}`;
+ window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(textMsg),"_blank");
+});
+
+async function adminSignIn(){
+ try{
+  const result=await signInWithPopup(auth,provider);
+  if(result.user.email.toLowerCase()!==OWNER_EMAIL.toLowerCase()){
+   await signOut(auth);msg("This Gmail is not authorized.");return;
+  }
+ }catch(e){msg("Login failed: "+e.message)}
+}
+async function adminSignOut(){await signOut(auth);location.hash="";location.reload()}
+
+const isAdminPage=!!document.getElementById("adminPage");
+if(IS_ADMIN)onAuthStateChanged(auth,async user=>{
+ currentUser=user;
+ if(!isAdminPage)return;
+ const isAdmin=!!user&&user.email.toLowerCase()===OWNER_EMAIL.toLowerCase();
+ $("adminLogin").style.display=isAdmin?"none":"block";
+ $("adminDashboard").style.display=isAdmin?"block":"none";
+ if(isAdmin){
+  const s=await loadSettings(),f=$("siteForm");
+  Object.keys(s).forEach(k=>{if(f.elements[k]&&f.elements[k].type!=="file")f.elements[k].value=s[k]});
+  await Promise.all([loadProducts(),loadProjects(),loadOrders(),loadEnquiries()]);
+ }
+});
+
+async function uploadImage(file,folder){
+ owner();
+ if(!file||!file.type.startsWith("image/"))throw Error("Select a valid image.");
+ if(file.size>12*1024*1024)throw Error("Image must be under 12 MB.");
+ const u=URL.createObjectURL(file);
+ const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(Error("Could not read image."));i.src=u});
+ const hero=folder==="settings",maxW=hero?1200:640,cap=hero?260000:110000;
+ const sc=Math.min(1,maxW/img.width);
+ let c=document.createElement("canvas");
+ c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+ const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+ for(let t=0;t<4;t++){
+  for(const q of [.72,.6,.5,.4]){const out=c.toDataURL("image/jpeg",q);if(out.length<=cap)return out}
+  const c2=document.createElement("canvas");c2.width=Math.round(c.width*.8);c2.height=Math.round(c.height*.8);c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);c=c2;
+ }
+ throw Error("Image is too detailed. Try a smaller photo.");
+}
+
+async function uploadVideo(file){
+ owner();
+ if(!file.type.startsWith("video/"))throw Error("Select a video file.");
+ if(file.size>7*1024*1024)throw Error("Video must be under 7 MB. Trim it, or use a YouTube link.");
+ const buf=new Uint8Array(await file.arrayBuffer()),CH=600*1024,id="v"+Date.now(),n=Math.ceil(buf.length/CH);
+ for(let i=0;i<n;i++){
+  const part=buf.subarray(i*CH,(i+1)*CH);let s="";
+  for(let k=0;k<part.length;k+=8192)s+=String.fromCharCode.apply(null,part.subarray(k,k+8192));
+  await setDoc(doc(db,"videos",id+"_"+i),{n,i,type:file.type,data:btoa(s)});
+  toast("Uploading video "+(i+1)+"/"+n);
+ }
+ return "fs:"+id+":"+n+":"+file.type;
+}
+const fsCache={};
+async function playFs(v){
+ const el=document.getElementById("fsVid"),ld=document.getElementById("fsLoad");if(!el)return;
+ try{
+  if(!fsCache[v]){
+   const [,id,n,...t]=v.split(":");
+   const snaps=await Promise.all(Array.from({length:+n},(_,i)=>getDoc(doc(db,"videos",id+"_"+i))));
+   const parts=snaps.map(s=>Uint8Array.from(atob(s.data().data),ch=>ch.charCodeAt(0)));
+   fsCache[v]=URL.createObjectURL(new Blob(parts,{type:t.join(":")}));
+  }
+  el.src=fsCache[v];ld.remove();el.play().catch(()=>{});
+ }catch(e){console.error(e);ld.textContent="Video could not be loaded."}
+}
+$("productForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.target,button=form.querySelector("button[type=submit]");
+ button.disabled=true;
+ try{
+  owner();const f=new FormData(form),id=f.get("id");
+  const name=f.get("name").trim(),price=Number(f.get("price"));
+  if(!name||!Number.isFinite(price)||price<0)throw Error("Enter a valid name and price.");
+  const file=f.get("image");let image=f.get("imageUrl").trim();
+  if(file&&file.size)image=await uploadImage(file,"products");
+  else if(id&&!image)image=products.find(p=>p.id===id)?.image||"";
+  if(!image)throw Error("Add an image URL or upload an image.");
+  let vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|fs:|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const vf=f.get("videoFile");if(vf&&vf.size)vid=await uploadVideo(vf);const data={name,price,video:vid,size:f.get("size").trim(),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
+  if(id)await updateDoc(doc(db,"products",id),data);
+  else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
+  form.reset();form.elements.id.value="";await loadProducts();msg("Product saved.");
+ }catch(err){console.error(err);msg(err.message)}
+ finally{button.disabled=false}
+});
+
+function renderAdminProducts(){
+ $("adminProductList").innerHTML=products.map(p=>`
+ <div class="adminrow"><img src="${safe(p.image)}"><div class="grow"><b>${safe(p.name)}</b><br><small>${money(p.price)} · ${p.active?"Active":"Draft"}</small></div>
+ <button class="smallbtn" onclick="editProduct('${p.id}')">Edit</button><button class="smallbtn" onclick="deleteProduct('${p.id}')">Delete</button></div>`).join("")||'<p class="notice">No products yet.</p>';
+}
+function editProduct(id){
+ owner();const p=products.find(x=>x.id===id);if(!p)return;
+ const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.video.value=p.video||"";f.elements.category.value=p.category||"Classic";f.elements.details.value=p.details||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
+}
+function resetProductForm(){$("productForm").reset();$("productForm").elements.id.value=""}
+async function deleteProduct(id){
+ try{owner();if(!confirm("Delete this product?"))return;await deleteDoc(doc(db,"products",id));await loadProducts();msg("Product deleted.")}catch(e){msg(e.message)}
+}
+
+
+async function loadOrders(){
+ try{
+  owner();const snap=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc")));
+  $("adminOrders").innerHTML=snap.docs.map(d=>{
+   const o=d.data();
+   return `<div class="panel" style="padding:15px;margin-top:12px">
+   <b>Order #${safe(d.id)}</b> <span class="gold">${money(o.total)}</span>
+   <p>${safe(o.name)} · ${safe(o.business||"")} · ${safe(o.phone)}</p>
+   <p class="notice">${safe(o.address||"")}</p>
+   <p>${(o.items||[]).map(x=>safe(x.name)+" × "+Number(x.quantity)).join("<br>")}</p>
+   <p>Status: ${safe(o.status||"New")}</p>
+   <button class="smallbtn" onclick="updateOrder('${d.id}','Processing')">Processing</button>
+   <button class="smallbtn" onclick="updateOrder('${d.id}','Completed')">Completed</button>
+   <button class="smallbtn" onclick="delItem('orders','${d.id}')">Delete</button>
+   </div>`;
+  }).join("")||'<p class="notice">No orders yet.</p>';
+ }catch(e){console.error(e);$("adminOrders").textContent="Could not load orders."}
+}
+async function updateOrder(id,status){
+ try{owner();await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});await loadOrders();msg("Order updated.")}catch(e){msg(e.message)}
+
+}
+
+$("projectForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.target,button=form.querySelector("button");
+ button.disabled=true;
+ try{
+  owner();const f=new FormData(form),file=f.get("image");
+  const image=await uploadImage(file,"clients");
+  await addDoc(collection(db,"clients"),{name:f.get("name").trim(),description:f.get("description").trim(),image,createdAt:serverTimestamp()});
+  form.reset();await loadProjects();msg("Project uploaded.");
+ }catch(err){msg(err.message)}
+ finally{button.disabled=false}
+});
+function renderAdminProjects(){
+ $("adminProjectList").innerHTML=projects.map(p=>`
+ <div class="adminrow"><img src="${safe(p.image)}"><div class="grow"><b>${safe(p.name)}</b><br><small>${safe(p.description||"")}</small></div><button class="smallbtn" onclick="deleteProject('${p.id}')">Delete</button></div>`).join("")||'<p class="notice">No projects yet.</p>';
+}
+async function deleteProject(id){
+ try{owner();if(!confirm("Delete this project?"))return;await
+deleteDoc(doc(db,"clients",id));await loadProjects();msg("Project deleted.")}catch(e){msg(e.message)}
+}
+
+async function loadEnquiries(){
+ try{
+  owner();const snap=await getDocs(query(collection(db,"enquiries"),orderBy("createdAt","desc")));
+  $("adminEnquiries").innerHTML=snap.docs.map(d=>{const e=d.data();
+   return `<div class="panel" style="padding:15px;margin-top:12px"><b>${safe(e.name)}</b> · ${safe(e.business||"")}
+   <p><a class="gold" href="tel:${safe(e.phone)}">${safe(e.phone)}</a> · ${safe(e.qty||"")}</p>
+   <p>${safe(e.message)}</p>
+   <button class="smallbtn" onclick="delItem('enquiries','${d.id}')">Delete</button></div>`}).join("")||'<p class="notice">No enquiries yet.</p>';
+ }catch(e){console.error(e);$("adminEnquiries").textContent="Could not load enquiries."}
+}
+async function delItem(col,id){
+ try{owner();if(!confirm("Delete permanently?"))return;await deleteDoc(doc(db,col,id));if(col==="orders")await loadOrders();else await loadEnquiries()}catch(e){msg(e.message)}
+}
+$("siteForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.target,b=form.querySelector("button");b.disabled=true;
+ try{
+  owner();const f=new FormData(form),data={};
+  ["announce","heroLine1","heroLine2","heroText","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
+  const file=f.get("heroFile");if(file&&file.size)data.heroImage=await uploadImage(file,"settings");
+  if(f.get("clearHero"))data.heroImage="";
+  await setDoc(doc(db,"settings","site"),data,{merge:true});msg("Site updated. Refresh the website to see changes.");
+ }catch(err){msg(err.message)}finally{b.disabled=false}
+});
+
+async function exportBackup(){
+ try{
+  owner();
+  const [p,o,c]=await Promise.all([getDocs(collection(db,"products")),getDocs(collection(db,"orders")),getDocs(collection(db,"clients"))]);
+  const data={exportedAt:new Date().toISOString(),products:p.docs.map(d=>({id:d.id,...d.data()})),orders:o.docs.map(d=>({id:d.id,...d.data()})),projects:c.docs.map(d=>({id:d.id,...d.data()}))};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+  const a=document.createElement("a");a.href=url;a.download="ALVO-CUSTOMS-BACKUP.json";a.click();URL.revokeObjectURL(url);
+ }catch(e){msg(e.message)}
+}
+
+$("year").textContent=new Date().getFullYear();
+
+Object.assign(window,{
+openCart,closeModal,openProduct,pmShow,setCat,enquireProduct,openCheckout,addToCart,buyNow,changeQty,removeItem,
+ adminSignIn,adminSignOut,showTab,editProduct,resetProductForm,
+ deleteProduct,updateOrder,delItem,deleteProject,exportBackup
+});
+
+updateCount();renderCart();
+try{applySettings(JSON.parse(localStorage.getItem("alvoS")||"{}"))}catch(e){}
+loadSettings().then(applySettings);
+if(!isAdminPage){
+ if(document.getElementById("productGrid")||document.getElementById("featuredRow"))loadProducts();
+ if(document.getElementById("projectGrid")||document.getElementById("projectRow"))loadProjects();
+}

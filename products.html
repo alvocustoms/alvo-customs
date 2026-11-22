@@ -1,1 +1,87 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Collection | ALVO Customs</title><link rel="stylesheet" href="style.css"></head><body><div id="siteHeader"></div><main class="container"><section class="page-hero"><div class="eyebrow">ALVO COLLECTION</div><h1>Find your bottle.</h1><p>Explore our sample styles. Select a product to view its details, video and customisation options.</p><div id="filters" class="filters"></div></section><section class="section" style="padding-top:0"><div id="productGrid" class="grid"><div class="empty">Loading products…</div></div></section></main><div id="siteFooter"></div><script type="module" src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050d14">
+<title>Products | ALVO CUSTOMS</title>
+<meta name="description" content="Browse ALVO CUSTOMS custom-label water bottles for weddings, hotels, restaurants and events.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@600;800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@600;800&display=swap"></noscript>
+<link rel="modulepreload" href="rest.js">
+<link rel="modulepreload" href="app.js">
+<link rel="stylesheet" href="style.css">
+<script>var d=document.documentElement;d.classList.add("js");try{if(sessionStorage.getItem("alvoIntro"))d.classList.add("nointro");else sessionStorage.setItem("alvoIntro","1")}catch(e){d.classList.add("nointro")}</script>
+</head>
+<body>
+<div id="intro" aria-hidden="true" onclick="this.style.display='none'"><svg class="bottle" viewBox="0 0 120 220" aria-hidden="true"><defs><clipPath id="bc"><path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z"/></clipPath>
+<linearGradient id="wgd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6e8"/><stop offset="1" stop-color="#3fa5c4"/></linearGradient>
+<linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="0" y1="-260" x2="0" y2="90"><stop offset="0" stop-color="#8fd6e8" stop-opacity="0"/><stop offset=".5" stop-color="#8fd6e8" stop-opacity=".9"/><stop offset="1" stop-color="#8fd6e8"/></linearGradient></defs>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="#6e1f38" fill-opacity=".05"/>
+<g clip-path="url(#bc)"><g class="wg"><g class="wv"><path d="M-60 0q15-5 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0 30 0V230H-60Z" fill="url(#wgd)"/></g></g>
+<g class="lab"><rect x="20" y="106" width="80" height="70" fill="#6e1f38"/><rect x="20" y="106" width="80" height="3.5" fill="#d9c08a"/><rect x="20" y="172.5" width="80" height="3.5" fill="#d9c08a"/>
+<text x="60" y="131" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="12" fill="#f5f2ed">YOUR NAME</text>
+<text x="60" y="147" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="12" fill="#f5f2ed">YOUR LABEL</text>
+<path d="M44 154H76" stroke="#d9c08a" stroke-width=".8"/>
+<text x="60" y="165" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="5" letter-spacing="1.6" fill="#d9c08a">AURA+999</text></g></g>
+<path d="M32 98V190" stroke="#fff" stroke-opacity=".8" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path class="stream" d="M60 -260V92" pathLength="100" stroke="url(#sg)" stroke-width="5" fill="none"/>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="none" stroke="#3a2a30" stroke-width="1.8"/>
+<g class="cap"><rect x="43" y="13" width="34" height="17" rx="3" fill="#b08d4e"/><path d="M48 13v17M54 13v17M60 13v17M66 13v17M72 13v17" stroke="#04222a" stroke-opacity=".22"/></g></svg><div class="word"><span style="--i:0">A</span><span style="--i:1">L</span><span style="--i:2">V</span><span style="--i:3">O</span><span style="--i:4">&nbsp;</span><span style="--i:5">C</span><span style="--i:6">U</span><span style="--i:7">S</span><span style="--i:8">T</span><span style="--i:9">O</span><span style="--i:10">M</span><span style="--i:11">S</span></div><div class="tag">YOUR BRAND. YOUR IDENTITY.</div></div>
+<div class="announce" id="announce">Custom label water bottles · Made for your brand</div>
+<header id="header"><div class="container"><nav>
+ <a href="index.html" class="logo" aria-label="ALVO CUSTOMS home"><b>ALVO</b><small>CUSTOMS</small></a>
+ <div class="links" id="links"><a href="index.html">Home</a><a href="products.html" class="active">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+ <div class="navright">
+  <button class="smallbtn" aria-label="Cart" onclick="openCart()">Bag <span id="cartCount">0</span></button>
+  <button class="smallbtn" aria-label="Menu" onclick="document.getElementById('links').classList.toggle('open')">☰</button>
+ </div></nav></div></header>
+<main>
+<div class="pagehead"><div class="eyebrow">The collection</div><h1>Our <span class="gold">Products</span></h1><p class="muted">Tap any bottle to see details. All designs shown are samples.</p></div>
+<section style="padding-top:30px"><div class="container"><div class="chips" id="chips"></div><div class="products" id="productGrid"><div class="empty">Loading products...</div></div></div></section>
+</main>
+<footer id="footer"><div class="container">
+ <div class="fgrid">
+  <div><div class="logo" style="margin-bottom:12px"><b>ALVO</b><small>CUSTOMS</small></div><p class="muted" style="font-size:14px">Your brand. Your identity.<br>Custom-label packaged drinking water for weddings, hotels, restaurants and events.</p></div>
+  <div><h4>Explore</h4><a href="index.html">Home</a><a href="products.html">Products</a><a href="custom.html">Custom Labels</a><a href="projects.html">Our Work</a><a href="contact.html">Contact</a></div>
+  <div><h4>Get in touch</h4>
+   <a data-link="tel" data-s="phone" href="tel:+919664056178">+91 96640 56178</a>
+   <a data-link="mail" data-s="email" href="mailto:alvo.customs@gmail.com">alvo.customs@gmail.com</a>
+   <a data-link="ig" href="https://instagram.com/alvocustoms" target="_blank" rel="noopener">Instagram</a>
+   <a data-link="yt" href="https://youtube.com/@alvocustoms" target="_blank" rel="noopener">YouTube</a></div>
+ </div>
+ <p class="copy">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
+</div></footer>
+<a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
+
+<div class="overlay" id="cartModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('cartModal')">×</button>
+  <h2>Your Cart</h2><div id="cartItems"></div>
+  <div style="display:flex;justify-content:space-between;padding:18px 0;font-size:20px"><b>Total</b><b id="cartTotal">₹0</b></div>
+  <button class="btn" onclick="openCheckout()">Proceed to Checkout</button>
+ </div>
+</div>
+
+<div class="overlay" id="checkoutModal">
+ <div class="modal">
+  <button class="close" onclick="closeModal('checkoutModal')">×</button>
+  <h2>Checkout</h2>
+  <form id="checkoutForm">
+   <div class="field"><label>Full Name</label><input name="name" required></div>
+   <div class="field"><label>Business / Hotel</label><input name="business"></div>
+   <div class="field"><label>Phone Number</label><input name="phone" type="tel" inputmode="tel" pattern="[0-9+\s\-]{10,15}" required></div>
+   <div class="field"><label>Delivery Address</label><textarea name="address" required></textarea></div>
+   <div class="field"><label>Additional Note</label><textarea name="note"></textarea></div>
+   <button class="btn" type="submit">Place Order on WhatsApp</button>
+  </form>
+ </div>
+</div>
+
+
+
+<div class="overlay" id="productModal"><div class="modal pmodal"><button class="close" onclick="closeModal('productModal')" aria-label="Close">×</button><div id="pmBody"></div></div></div>
+<script src="fx.js" defer></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
