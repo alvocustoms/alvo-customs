@@ -47,7 +47,7 @@ async function loadSettings(){try{const s=await getDoc(doc(db,"settings","site")
 const app=initializeApp(firebaseConfig);
 const auth=IS_ADMIN?getAuth(app):null;
 const db=getFirestore(app);
-const provider=new GoogleAuthProvider();
+const provider=IS_ADMIN?new GoogleAuthProvider():null;
 
 let products=[],projects=[],currentUser=null,cart=[];
 try{cart=JSON.parse(localStorage.getItem("alvoCart")||"[]")}catch(e){}
