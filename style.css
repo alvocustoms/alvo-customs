@@ -194,3 +194,7 @@ body{padding-bottom:38px}.float{bottom:58px}
  .film{grid-template-columns:1fr}.fcol{display:none}.try{grid-template-columns:1fr;gap:24px}
 }
 @media(max-width:520px){.logo b{font-size:21px}.float{bottom:54px}.hang{width:130px}}
+
+main,footer{overflow-x:clip}
+img,video,iframe{max-width:100%}
+.vwrap.tall{aspect-ratio:9/16;max-height:72vh;width:min(100%,360px);margin:auto}

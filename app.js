@@ -158,7 +158,7 @@ async function loadProducts(){
  }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded ('+safe(e.message)+'). Please reload.</div>'}
 }
 const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
-function stageVid(p){
+function stageVid0(p){
  const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
  if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
  if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
@@ -295,6 +295,14 @@ async function uploadVideo(file){
  }
  return "fs:"+id+":"+n+":"+file.type;
 }
+function stageVid(p){
+ const v=String(p.video||"");
+ if(v.startsWith("fs:"))return stageVid0(p);
+ const ig=v.match(/instagram\.com\/(?:reels?|p|tv)\/([\w-]+)/),dr=v.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+ const h=ig?`<div class="vwrap tall"><iframe src="https://www.instagram.com/reel/${ig[1]}/embed/" allowfullscreen loading="lazy"></iframe></div>`
+  :dr?`<div class="vwrap"><iframe src="https://drive.google.com/file/d/${dr[1]}/preview" allow="autoplay" allowfullscreen loading="lazy"></iframe></div>`:stageVid0(p);
+ return h+`<p class="notice" style="margin-top:8px">Video not playing? <a class="gold" href="${safe(v)}" target="_blank" rel="noopener">Open it in a new tab</a></p>`;
+}
 const fsCache={};
 async function playFs(v){
  const el=document.getElementById("fsVid"),ld=document.getElementById("fsLoad");if(!el)return;
@@ -306,7 +314,7 @@ async function playFs(v){
    fsCache[v]=URL.createObjectURL(new Blob(parts,{type:t.join(":")}));
   }
   el.src=fsCache[v];ld.remove();el.play().catch(()=>{});
- }catch(e){console.error(e);ld.textContent="Video could not be loaded."}
+ }catch(e){console.error(e);ld.textContent="Video could not be loaded ("+e.message+"). Check the Firebase Rules for videos."}
 }
 $("productForm").addEventListener("submit",async e=>{
  e.preventDefault();const form=e.target,button=form.querySelector("button[type=submit]");
