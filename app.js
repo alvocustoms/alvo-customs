@@ -34,7 +34,8 @@ function applySettings(s){
  L("mail").forEach(a=>a.href="mailto:"+d.email);
  L("ig").forEach(a=>a.href=url(d.instagram,"https://instagram.com/"));
  L("yt").forEach(a=>a.href=url(d.youtube,"https://youtube.com/@"));
-const hv=document.querySelector(".hero-img");
+FILM=d.filmVideo||"";try{renderFilm()}catch(e){}
+ const hv=document.querySelector(".hero-img");
  if(hv&&d.heroVideo){const v=String(d.heroVideo).replace(/["<>]/g,""),ym=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
   hv.style.cssText="position:relative;overflow:hidden";
   hv.innerHTML=ym?`<iframe src="https://www.youtube.com/embed/${ym[1]}?autoplay=1&mute=1&loop=1&playlist=${ym[1]}&controls=0&playsinline=1&rel=0" allow="autoplay" style="position:absolute;inset:-2%;width:104%;height:104%;border:0;pointer-events:none"></iframe>`:`<video src="${v}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`}
@@ -109,6 +110,29 @@ const pcard=p=>`<article class="card">
   <h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3>
   <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:400">/ bottle</small></div>
   <div class="card-actions"><button class="btn outline" onclick="openProduct('${p.id}')">View Details</button><button class="btn" onclick="addToCart('${p.id}')">Add</button></div></div></article>`;
+const PAL=["#d6162b","#1f9d3a","#1c6fe0","#e8981a","#7a2ee0","#0f8f8a"];
+const postcard=(p,i)=>`<article class="card poster" style="--pc:${safe(p.color||PAL[i%PAL.length])}"><h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3><div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"></div><div class="pfoot"><span class="price">${money(p.price)}</span><button class="plus" aria-label="Add to bag" onclick="addToCart('${p.id}')">+</button></div></article>`;
+let rackCat="All",FILM="";
+function setRack(c){rackCat=c;renderRack()}
+function renderRack(){
+ const act=products.filter(p=>p.active===true);
+ const cats=[...new Set(act.map(p=>p.category||"Custom"))];
+ const list=(rackCat==="All"?act:act.filter(p=>(p.category||"Custom")===rackCat)).slice(0,24);
+ $("rackChips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===rackCat?" on":""}" onclick="setRack('${safe(c)}')">${safe(c)}</button>`).join(""):"";
+ $("rackIn").innerHTML=list.map((p,i)=>`<div class="hang" style="animation-delay:-${(i%5)*.9}s" onclick="openProduct('${p.id}')"><i class="hook"></i><div class="hbody"><img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></div>`).join("");
+ $("rack").hidden=!act.length;
+}
+function mvid(v){v=String(v).replace(/["<>]/g,"");const m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?`<iframe src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0" allow="autoplay" loading="lazy"></iframe>`:`<video src="${v}" autoplay muted loop playsinline></video>`}
+function renderFilm(){
+ const fm=$("film"),act=products.filter(p=>p.active===true);
+ const pv=act.find(p=>p.video&&!String(p.video).startsWith("fs:")),v=FILM||(pv&&pv.video);
+ if(!v){fm.hidden=true;return}
+ const imgs=[...act.map(p=>p.image),...projects.map(p=>p.image)].filter(Boolean).slice(0,12);
+ const col=a=>a.length?`<div class="ftrack">${[...a,...a].map(s=>`<img src="${safe(s)}" alt="" loading="lazy" decoding="async">`).join("")}</div>`:"";
+ if(fm.dataset.v!==v){$("filmMid").innerHTML=mvid(v);fm.dataset.v=v}
+ $("filmL").innerHTML=col(imgs.filter((_,i)=>i%2===0));$("filmR").innerHTML=col(imgs.filter((_,i)=>i%2===1));
+ fm.hidden=false;
+}
 function renderProducts(){
  const act=products.filter(p=>p.active===true);
  const list=curCat==="All"?act:act.filter(p=>(p.category||"Custom")===curCat);
@@ -116,10 +140,11 @@ function renderProducts(){
  const cats=[...new Set(act.map(p=>p.category||"Custom"))];
  $("chips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===curCat?" on":""}" onclick="setCat('${safe(c)}')">${safe(c)}</button>`).join(""):"";
  const feat=act.filter(p=>p.featured===true);
- $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map(pcard).join("")||'<div class="empty">New products coming soon.</div>';
+ $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map((p,i)=>postcard(p,i)).join("")||'<div class="empty">New products coming soon.</div>';
  const mo=act.filter(p=>p.video);
  $("reelRow").innerHTML=mo.map(p=>`<article class="reel" onclick="openProduct('${p.id}')">${/\.(mp4|webm)(\?|$)/i.test(p.video)?`<video data-reel src="${safe(p.video)}" poster="${safe(p.image)}" muted loop playsinline preload="none"></video>`:`<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><span class="pl">▶</span>`}<div class="reel-info"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></article>`).join("");
  $("motion").hidden=!mo.length;
+ renderRack();renderFilm();
 }
 function setCat(c){curCat=c;renderProducts()}
 async function loadProducts(){
@@ -169,7 +194,7 @@ async function loadProjects(){
    <div class="card-body"><h3>${safe(p.name)}</h3><p>${safe(p.description||"")}</p></div></article>`;
   $("projectGrid").innerHTML=projects.map(card).join("")||'<div class="empty">Our projects will appear here.</div>';
   $("projectRow").innerHTML=projects.slice(0,8).map(card).join("");
-  $("workTeaser").hidden=!projects.length;
+  $("workTeaser").hidden=!projects.length;renderFilm();
   renderAdminProjects();
  }catch(e){console.error(e)}
 }
@@ -294,7 +319,7 @@ $("productForm").addEventListener("submit",async e=>{
   if(file&&file.size)image=await uploadImage(file,"products");
   else if(id&&!image)image=products.find(p=>p.id===id)?.image||"";
   if(!image)throw Error("Add an image URL or upload an image.");
-  let vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|fs:|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const vf=f.get("videoFile");if(vf&&vf.size)vid=await uploadVideo(vf);const data={name,price,video:vid,size:f.get("size").trim(),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
+  let vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|fs:|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const vf=f.get("videoFile");if(vf&&vf.size)vid=await uploadVideo(vf);const data={name,price,video:vid,size:f.get("size").trim(),color:(f.get("color")==="#6e1f38"?"":f.get("color")),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
   if(id)await updateDoc(doc(db,"products",id),data);
   else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
   form.reset();form.elements.id.value="";await loadProducts();msg("Product saved.");
@@ -309,7 +334,7 @@ function renderAdminProducts(){
 }
 function editProduct(id){
  owner();const p=products.find(x=>x.id===id);if(!p)return;
- const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.video.value=p.video||"";f.elements.category.value=p.category||"Classic";f.elements.details.value=p.details||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
+ const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.color.value=p.color||"#6e1f38";f.elements.video.value=p.video||"";f.elements.category.value=p.category||"Classic";f.elements.details.value=p.details||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
 }
 function resetProductForm(){$("productForm").reset();$("productForm").elements.id.value=""}
 async function deleteProduct(id){
@@ -377,7 +402,7 @@ $("siteForm").addEventListener("submit",async e=>{
  e.preventDefault();const form=e.target,b=form.querySelector("button");b.disabled=true;
  try{
   owner();const f=new FormData(form),data={};
-  ["announce","heroLine1","heroLine2","heroText","heroVideo","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
+  ["announce","heroLine1","heroLine2","heroText","heroVideo","filmVideo","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
   const file=f.get("heroFile");if(file&&file.size)data.heroImage=await uploadImage(file,"settings");
   if(f.get("clearHero"))data.heroImage="";
   await setDoc(doc(db,"settings","site"),data,{merge:true});msg("Site updated. Refresh the website to see changes.");
@@ -397,7 +422,7 @@ async function exportBackup(){
 $("year").textContent=new Date().getFullYear();
 
 Object.assign(window,{
-openCart,closeModal,openProduct,pmShow,setCat,enquireProduct,openCheckout,addToCart,buyNow,changeQty,removeItem,
+openCart,closeModal,openProduct,pmShow,setCat,setRack,enquireProduct,openCheckout,addToCart,buyNow,changeQty,removeItem,
  adminSignIn,adminSignOut,showTab,editProduct,resetProductForm,
  deleteProduct,updateOrder,delItem,deleteProject,exportBackup
 });

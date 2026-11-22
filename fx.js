@@ -34,4 +34,21 @@
  scan(document.body);
  document.querySelectorAll(".row").forEach(carousel);
  new MutationObserver(function(m){m.forEach(function(x){x.addedNodes.forEach(function(n){if(n.nodeType===1)scan(n)})})}).observe(document.body,{childList:true,subtree:true});
+ function initTry(){
+  var n=document.getElementById("tryName");if(!n)return;
+  var T=[["Burgundy","#6e1f38","#f5f2ed","#d9c08a"],["Emerald","#0f5b45","#f5f2ed","#e6d39a"],["Navy","#14305c","#f5f2ed","#d9c08a"],["Ivory","#f4eddc","#1d1418","#8a6a2a"],["Black","#17131a","#f5f2ed","#d9c08a"],["Rose","#b3425f","#ffffff","#f6dcb8"]];
+  var cur=0,size="500 ml",sw=document.getElementById("trySw"),g=function(i){return document.getElementById(i)};
+  T.forEach(function(t,i){var b=document.createElement("button");b.type="button";b.className="swb"+(i?"":" on");b.style.background=t[1];b.title=t[0];b.setAttribute("aria-label",t[0]);
+   b.onclick=function(){cur=i;[].forEach.call(sw.children,function(x,j){x.classList.toggle("on",j===i)});draw()};sw.appendChild(b)});
+  function draw(){var t=T[cur],nm=(n.value||"YOUR NAME").toUpperCase(),tg=(g("tryTag").value||"YOUR LABEL").toUpperCase();
+   ["lbA1","lbA2","lbCap"].forEach(function(i){g(i).setAttribute("fill",t[3])});g("lbBg").setAttribute("fill",t[1]);g("lbBrand").setAttribute("fill",t[3]);
+   var e=g("lbName");e.textContent=nm;e.setAttribute("fill",t[2]);e.setAttribute("font-size",Math.max(6,Math.min(13,100/nm.length)).toFixed(1));
+   var q=g("lbTag");q.textContent=tg;q.setAttribute("fill",t[3]);q.setAttribute("font-size",Math.max(3.4,Math.min(5.4,(72/tg.length-1.2)/.68)).toFixed(1))}
+  n.oninput=g("tryTag").oninput=draw;
+  [].forEach.call(g("trySize").children,function(b){b.onclick=function(){size=b.dataset.v;[].forEach.call(g("trySize").children,function(x){x.classList.toggle("on",x===b)})}});
+  g("tryGo").onclick=function(){var w=document.querySelector("a.float"),base=w?w.href.split("?")[0]:"https://wa.me/919664056178";
+   window.open(base+"?text="+encodeURIComponent("Hi ALVO CUSTOMS, I designed a label on your website.\nName: "+n.value+"\nTagline: "+g("tryTag").value+"\nColour: "+T[cur][0]+"\nSize: "+size+"\nPlease share the next steps."),"_blank")};
+  draw();
+ }
+ initTry();
 })();

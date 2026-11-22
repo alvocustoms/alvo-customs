@@ -43,11 +43,27 @@
   <div class="eyebrow hl" style="--k:0">ALVO CUSTOMS · Personalise the moment</div>
   <h1><span class="hl" style="--k:1" data-s="heroLine1">Your name.</span><span class="hl em" style="--k:2" data-s="heroLine2">On every bottle.</span></h1>
   <p class="hl" style="--k:3" data-s="heroText">Premium custom-label packaged water for weddings, hotels, restaurants and events. You bring the brand, we bottle it beautifully.</p>
-  <div class="hero-actions hl" style="--k:4"><a class="btn" href="products.html">Explore Collection</a><a class="btn outline" href="contact.html">Create Your Label</a></div>
+  <div class="hero-actions hl" style="--k:4"><a class="btn" href="products.html">Explore Collection</a><a class="btn outline" href="#try">Create Your Label</a></div>
  </div>
  <div class="hero-art hl" style="--k:3"><div class="hero-img" role="img" aria-label="Custom label water bottle"></div><div class="hero-chip"><b>Sample Design</b><span>Your logo · Your label</span></div></div>
 </div></section>
 <div class="marquee"><div><span>WEDDINGS ✦ HOTELS ✦ RESTAURANTS ✦ CORPORATE ✦ EVENTS ✦ YOUR LOGO ✦ YOUR LABEL ✦ </span><span>WEDDINGS ✦ HOTELS ✦ RESTAURANTS ✦ CORPORATE ✦ EVENTS ✦ YOUR LOGO ✦ YOUR LABEL ✦ </span></div></div>
+<section id="try"><div class="container"><div class="heading"><div class="eyebrow">Try the label</div><h2>Design it. <span class="gold">See it.</span></h2><p class="muted">Type your name, pick a colour and watch your bottle come together.</p></div>
+<div class="try"><div class="try-view"><svg id="tvSvg" viewBox="0 0 120 220" role="img" aria-label="Label preview"><defs><clipPath id="tbc"><path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z"/></clipPath><linearGradient id="twg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fdcea"/><stop offset="1" stop-color="#3fa5c4"/></linearGradient></defs>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="#6e1f38" fill-opacity=".05"/>
+<g clip-path="url(#tbc)"><rect x="0" y="62" width="120" height="150" fill="url(#twg)"/>
+<rect id="lbBg" x="20" y="106" width="80" height="70" fill="#6e1f38"/><rect id="lbA1" x="20" y="106" width="80" height="3.5" fill="#d9c08a"/><rect id="lbA2" x="20" y="172.5" width="80" height="3.5" fill="#d9c08a"/>
+<text id="lbName" x="60" y="136" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="800" font-size="12" fill="#f5f2ed">YOUR NAME</text>
+<text id="lbTag" x="60" y="152" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="5.2" letter-spacing="1.2" fill="#d9c08a">YOUR LABEL</text>
+<text id="lbBrand" x="60" y="166" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="600" font-size="3.6" letter-spacing="1.4" fill="#d9c08a" opacity=".8">ALVO CUSTOMS</text></g>
+<path d="M32 98V190" stroke="#fff" stroke-opacity=".8" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M46 28H74V46C74 56 100 62 100 84V196Q100 208 88 208H32Q20 208 20 196V84C20 62 46 56 46 46Z" fill="none" stroke="#3a2a30" stroke-width="1.8"/>
+<rect id="lbCap" x="43" y="13" width="34" height="17" rx="3" fill="#d9c08a"/></svg></div>
+<div class="try-ctl"><div class="field"><label>Business / event name</label><input id="tryName" maxlength="22" value="YOUR NAME" autocomplete="off"></div>
+<div class="field"><label>Tagline</label><input id="tryTag" maxlength="26" value="YOUR LABEL" autocomplete="off"></div>
+<div class="field"><label>Label colour</label><div id="trySw"></div></div>
+<div class="field"><label>Bottle size</label><div class="chips" style="justify-content:flex-start;margin:0" id="trySize"><button type="button" class="chip on" data-v="500 ml">500 ml</button><button type="button" class="chip" data-v="1 L">1 L</button></div></div>
+<button class="btn" id="tryGo" type="button">Request this design on WhatsApp</button></div></div></div></section>
 <section><div class="container"><div class="heading"><div class="eyebrow">Made for every occasion</div><h2>One bottle. <span class="gold">Your story.</span></h2></div>
 <div class="tiles">
 <a class="tile t1" href="products.html?cat=Wedding"><small>01</small><h3>Weddings</h3><p>Royal labels for every ceremony</p></a>
@@ -55,10 +71,14 @@
 <a class="tile t3" href="products.html?cat=Hotel"><small>03</small><h3>Hotels</h3><p>Guest-room and lobby ready</p></a>
 <a class="tile t4" href="products.html?cat=Event"><small>04</small><h3>Events</h3><p>Launches, parties and corporates</p></a>
 </div></div></section>
-<section id="featured" style="padding-top:20px"><div class="container"><div class="heading"><div class="eyebrow">The collection</div><h2>Featured <span class="gold">Bottles</span></h2><p class="muted">Swipe to explore →</p></div>
+<section id="featured" style="padding-top:20px"><div class="container"><div class="heading"><div class="eyebrow">The collection</div><h2>Pick a <span class="gold">Bottle</span></h2><p class="muted">Tap a card to open it, press + to add to your bag.</p></div>
 <div class="row" id="featuredRow"><div class="empty">Loading products...</div></div>
 <p style="text-align:center;margin-top:22px"><a class="btn outline" href="products.html">View All Products</a></p></div></section>
+<section id="rack" hidden><div class="container"><div class="heading"><div class="eyebrow">The rack</div><h2>Every bottle, <span class="gold">on the rail</span></h2></div><div class="chips" id="rackChips"></div></div><div class="rackwrap"><div class="rackin" id="rackIn"></div></div></section>
 <section id="motion" hidden style="padding-top:20px"><div class="container"><div class="heading"><div class="eyebrow">In motion</div><h2>See them <span class="gold">come alive</span></h2></div></div><div class="reels" id="reelRow"></div></section>
+<section id="film" hidden><div class="container"><div class="heading"><div class="eyebrow">The film</div><h2>Feel the <span class="gold">label</span></h2></div>
+<div class="film"><div class="fcol" id="filmL"></div><div class="fmid" id="filmMid"></div><div class="fcol" id="filmR"></div></div>
+<p style="text-align:center;margin-top:26px"><a class="btn" href="products.html">Shop the Collection</a></p></div></section>
 <section style="padding-top:20px"><div class="container features">
 <div class="feature"><span>01</span><strong>Your Brand, Front and Centre</strong><p>Your logo, your colours, your story on every label.</p></div>
 <div class="feature"><span>02</span><strong>Premium on Every Table</strong><p>Presentation that makes guests notice the details.</p></div>
@@ -84,6 +104,7 @@
  </div>
  <p class="copy">© <span id="year"></span> ALVO CUSTOMS. All rights reserved.</p>
 </div></footer>
+<div class="ticker" aria-hidden="true"><div><span>◆ TRY THE LABEL Design your own bottle ◆ PICK A BOTTLE Tap a card, press + ◆ THE RACK Browse every bottle ◆ IN MOTION Watch them come alive ◆ CUSTOM ORDERS Weddings · Hotels · Restaurants · Events </span><span>◆ TRY THE LABEL Design your own bottle ◆ PICK A BOTTLE Tap a card, press + ◆ THE RACK Browse every bottle ◆ IN MOTION Watch them come alive ◆ CUSTOM ORDERS Weddings · Hotels · Restaurants · Events </span></div></div>
 <a class="float" data-link="wa" href="https://wa.me/919664056178" target="_blank" rel="noopener">WhatsApp ↗</a>
 
 <div class="overlay" id="cartModal">

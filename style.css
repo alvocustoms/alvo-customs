@@ -150,3 +150,47 @@ footer .copy{text-align:center;margin-top:34px;color:#8f867f;font-size:13px}
 .reel-info b{font:700 15px var(--serif)}.reel-info span{color:#f3e3c8;font-weight:600}
 .reel .pl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:#fffe;color:var(--acc);display:grid;place-items:center;font-size:18px}
 .navright .smallbtn{white-space:nowrap}
+
+header{position:sticky;top:10px;margin:12px auto 0;width:min(1120px,94%);border:1px solid var(--line);border-radius:60px;background:#fffffff2;box-shadow:0 10px 30px #1d141814}
+header .container{width:100%;padding:0 22px}
+nav{min-height:64px}
+.logo b{font-size:24px}.logo small{font-size:9px;margin-top:3px}
+.links{gap:4px}.links a{padding:9px 16px;border-radius:30px}
+.links a:hover{background:var(--panel2)}.links a.active{background:var(--acc);color:#fff}
+.ticker{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--ink);color:#f3e3c8;font-size:11px;letter-spacing:.16em;text-transform:uppercase;overflow:hidden;padding:10px 0}
+.ticker div{display:flex;gap:40px;width:max-content;white-space:nowrap;animation:slide 45s linear infinite}
+body{padding-bottom:38px}.float{bottom:58px}
+.poster{background:var(--pc,#6e1f38);border:0;color:#fff;padding:16px;display:flex;flex-direction:column;gap:12px}
+.poster h3{font:800 clamp(20px,5.6vw,26px)/.98 var(--serif);text-transform:uppercase;min-height:2em;cursor:pointer}
+.poster .product-image{aspect-ratio:3/4;border-radius:12px}
+.poster .ribbon{background:#fff;color:#1d1418}
+.pfoot{display:flex;justify-content:space-between;align-items:center}
+.poster .price{margin:0;color:#fff;font-size:18px}
+.plus{width:40px;height:40px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:24px;line-height:1}
+.rackwrap{overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch}
+.rackin{display:flex;gap:22px;position:relative;width:max-content;padding:34px 4% 10px}
+.rackin::before{content:"";position:absolute;left:0;right:0;top:34px;height:4px;background:linear-gradient(#b9ad9a,#8f8372);border-radius:2px}
+.hang{width:150px;transform-origin:50% 0;animation:sway 5s ease-in-out infinite alternate;cursor:pointer}
+.hook{display:block;width:20px;height:20px;border:3px solid #7d705d;border-bottom:0;border-radius:20px 20px 0 0;margin:-14px auto 0}
+.hbody{background:#fff;border:1px solid var(--line);padding:8px;text-align:center}
+.hbody img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.hbody b{display:block;font:700 13px var(--serif);margin-top:6px}.hbody span{color:var(--champ);font-size:13px;font-weight:600}
+@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+.film{display:grid;grid-template-columns:1fr 2.4fr 1fr;gap:18px;align-items:center}
+.fcol{height:420px;overflow:hidden;border-radius:6px}
+.ftrack{display:flex;flex-direction:column;gap:14px;animation:vup 28s linear infinite}
+.fcol:last-child .ftrack{animation-direction:reverse}
+.ftrack img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px}
+@keyframes vup{to{transform:translateY(-50%)}}
+.fmid{position:relative;aspect-ratio:16/10;background:#000;border-radius:6px;overflow:hidden;box-shadow:0 20px 50px #1d141830}
+.fmid video,.fmid iframe{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.try{display:grid;grid-template-columns:.8fr 1.2fr;gap:40px;align-items:center;max-width:860px;margin:auto}
+.try-view{background:#fff;border:1px solid var(--line);padding:24px}
+#tvSvg{width:min(220px,62%);display:block;margin:auto;overflow:visible}
+.swb{width:34px;height:34px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);margin:0 8px 6px 0}.swb.on{box-shadow:0 0 0 2px var(--acc)}
+@media(max-width:850px){
+ header{top:8px;border-radius:30px}header .container{padding:0 16px}
+ .links{top:76px;border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 30px #1d141822;gap:2px}
+ .film{grid-template-columns:1fr}.fcol{display:none}.try{grid-template-columns:1fr;gap:24px}
+}
+@media(max-width:520px){.logo b{font-size:21px}.float{bottom:54px}.hang{width:130px}}
