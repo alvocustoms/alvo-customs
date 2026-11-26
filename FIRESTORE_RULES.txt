@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner() { return signedIn() && request.auth.token.email == 'alvo.customs@gmail.com'; }
+
+    match /products/{id} {
+      allow read: if owner() || resource.data.active == true;
+      allow create, update, delete: if owner();
+    }
+    match /media/{id} {
+      allow read: if owner() || resource.data.active == true;
+      allow create, update, delete: if owner();
+    }
+    match /projects/{id} {
+      allow read: if owner() || resource.data.active == true;
+      allow create, update, delete: if owner();
+    }
+    match /orders/{id} {
+      allow create: if request.resource.data.keys().hasAll(['productId','productName','boxes','bottlesPerBox','boxPrice','total','name','phone','location','requiredDate','status','createdAt'])
+        && request.resource.data.status == 'Pending Confirmation'
+        && request.resource.data.boxes is int
+        && request.resource.data.boxes > 0
+        && request.resource.data.boxes <= 500;
+      allow read, update, delete: if owner();
+    }
+    match /enquiries/{id} {
+      allow create: if request.resource.data.keys().hasAll(['name','phone','status','createdAt'])
+        && request.resource.data.status == 'New';
+      allow read, update, delete: if owner();
+    }
+  }
+}

@@ -1,39 +1,53 @@
-ALVO CUSTOMS WEBSITE — SETUP
+ALVO CUSTOMS — FULL WEBSITE PACKAGE
 
-This is a rebuilt multi-page frontend using your existing Firebase project:
-alvocustoms-c4952
-Owner/admin: alvo.customs@gmail.com
+WEBSITE FILES
+- index.html: homepage and opening animation
+- products.html: searchable product catalogue
+- product.html: product details and box-wise WhatsApp order request
+- editions.html: business, wedding, hospitality, events and institution editions
+- custom.html: custom branding enquiry form
+- projects.html: project gallery and video showcase
+- about.html: brand information
+- contact.html: contact form and contact details
+- admin.html: owner dashboard
+- privacy.html / terms.html: starter policy pages
+- assets/: all CSS and JavaScript files
+- FIRESTORE_RULES.txt / STORAGE_RULES.txt: Firebase rules
 
-FILES
-index.html          Home page
-products.html       Product collection + category filters
-product.html        Product detail page + autoplay muted video
-custom.html         Custom label enquiry form
-projects.html       Inspiration / portfolio page
-contact.html        Contact form
-account.html        Google login + Mobile OTP + customer orders
-admin.html          Owner-only product, video, orders and enquiries manager
-app.js              Page logic and Firebase operations
-rest.js             Existing Firebase project configuration and SDK imports
-fx.js               Shared helpers
-style.css           Responsive premium ivory / burgundy / muted gold design
-FIREBASE_RULES.txt  Firestore and Storage security rules + Auth checklist
+BEFORE DEPLOYMENT
+1. Verify assets/firebase.js values against Firebase Console > Project settings.
+2. Replace WHATSAPP_NUMBER = "91XXXXXXXXXX" with the real ALVO WhatsApp number (91 + 10 digits, digits only).
+3. Enable Google provider in Firebase Authentication.
+4. Add the deployed Vercel domain to Firebase Authentication > Settings > Authorized domains.
+5. Create/enable Firestore Database and Storage.
+6. Paste FIRESTORE_RULES.txt into Firestore > Rules and publish.
+7. Paste STORAGE_RULES.txt into Storage > Rules and publish.
+8. Upload every file and folder in this package to the ROOT of the GitHub repository connected to Vercel.
+9. Open the deployed site and test all pages, product enquiry, custom enquiry and admin dashboard.
 
-DEPLOY
-1. Keep all files in the same root folder in your GitHub repository.
-2. Upload/replace the site files in the existing Vercel-connected repository.
-3. Do NOT create a new Firebase project.
-4. Apply Firestore and Storage rules from FIREBASE_RULES.txt in Firebase Console.
-5. Enable Google and Phone sign-in in Firebase Authentication.
-6. Add your Vercel domain to Firebase Authentication authorized domains.
+ADMIN
+- Open /admin.html and sign in using alvo.customs@gmail.com.
+- Add products with name, size, bottles per box, price per box, minimum boxes, image URL and active status.
+- Public catalogue shows only products with active=true.
+- Product media and project content can be managed from their dashboard tabs.
+- Product image, project image, video and thumbnail are currently added using publicly accessible URLs. This build does not yet provide direct file upload from the admin panel.
 
-IMPORTANT
-- Existing Firebase config values were carried forward from your earlier setup. Firebase web apiKey is a public client identifier, not an admin secret.
-- Product collection used: products. Fields used: name, price, description, image, video, category, size, details, active.
-- Orders collection used: orders. Enquiries collection used: enquiries.
-- Existing old products with active=true remain visible. Admin must be signed into the owner Google account.
-- Order submit creates an order request, not a payment or confirmed purchase. Payment gateway is not connected.
-- The price is displayed as indicative unless your admin product details explicitly state exactly what GST/transport includes. Avoid claiming GST/transport included unless confirmed in your actual quotation.
-- Product video autoplay is muted because mobile browsers generally block autoplay with sound.
-- Firebase Phone OTP can be subject to Firebase project billing / SMS quotas / country restrictions.
-- Test on a staging deployment or backup before replacing the live website. This rebuild cannot inspect or migrate undocumented legacy collection schemas automatically.
+ORDER FLOW
+- No customer login or registration.
+- Customer selects product, box quantity and enters contact/delivery details.
+- Website calculates estimated total using price per box.
+- Request details are saved to Firestore when rules permit, then WhatsApp opens with a prefilled message.
+- Customer must press Send in WhatsApp.
+- This is NOT a confirmed order. ALVO must confirm stock, final pricing, delivery and terms manually.
+
+IMPORTANT LIMITATIONS / SECURITY
+- This package is a complete first website build, but it has not been connected to or tested against your live Firebase/Vercel project.
+- Existing Firestore collection names/data may differ. This code expects lowercase collections: products, orders, enquiries, media, projects.
+- Public forms can be spammed. Add Firebase App Check / CAPTCHA and server-side validation before high-volume public launch.
+- The rules restrict writes for catalogue/media/projects to the owner. Order and enquiry submissions are public by design; only owner can read them.
+- Client-sent price is not payment proof. Verify all details manually.
+- No payment gateway, delivery tracking, automated WhatsApp API, inventory system or direct admin file upload is included.
+- Back up your existing website and Firebase rules before replacing anything.
+- Privacy and Terms pages are starter text and should be reviewed for your real business practices.
+
+This folder should be deployed as a whole; do not upload only selected files.
