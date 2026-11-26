@@ -1,469 +1,207 @@
-
-const IS_ADMIN=!!document.getElementById("adminPage");
-const FB="https://www.gstatic.com/firebasejs/11.0.2/";
-const imp=(r,s)=>IS_ADMIN?import(FB+s):import(r).catch(()=>import(FB+s));
-let M1,M2,M3;
-try{[M1,M2,M3]=await Promise.all([imp("./rest.js","firebase-app.js"),imp("./rest.js","firebase-firestore.js"),IS_ADMIN?import(FB+"firebase-auth.js"):{}])}
-catch(e){document.querySelectorAll("#featuredRow,#productGrid,#projectGrid").forEach(x=>{x.innerHTML='<div class="empty">Could not load ('+e.message+'). Please reload.</div>'});throw e}
-const {initializeApp}=M1;
-const {getFirestore,collection,addDoc,getDocs,doc,deleteDoc,updateDoc,getDoc,setDoc,serverTimestamp,query,orderBy}=M2;
-const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=M3;
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCKBprdUJsrvbvCHoD-EjyZihsenZaJ3LI",
-  authDomain: "alvocustoms-c4952.firebaseapp.com",
-  projectId: "alvocustoms-c4952",
-  storageBucket: "alvocustoms-c4952.firebasestorage.app",
-  messagingSenderId: "717785800659",
-  appId: "1:717785800659:web:86c2445cbce63a24275926",
-  measurementId: "G-H1RW1SZ7K5"
-};
-const OWNER_EMAIL="alvo.customs@gmail.com";
-let WHATSAPP="919664056178";
-const DEFAULTS={announce:"Custom label water bottles · Made for your brand",heroLine1:"Your name.",heroLine2:"On every bottle.",heroText:"Premium custom-label packaged water for weddings, hotels, restaurants and events. You bring the brand, we bottle it beautifully.",phone:"+91 96640 56178",whatsapp:"919664056178",email:"alvo.customs@gmail.com",instagram:"alvocustoms",youtube:"alvocustoms"};
-const byNew=(a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
-const url=(v,base)=>/^https?:/.test(v)?v:base+String(v).replace(/^@/,"");
-function applySettings(s){
- const d={...DEFAULTS};Object.keys(s||{}).forEach(k=>{if(s[k])d[k]=s[k]});
- document.querySelectorAll("[data-s]").forEach(el=>{const v=d[el.dataset.s];if(v)el.textContent=v});
- const digits=String(d.whatsapp).replace(/\D/g,"");if(digits)WHATSAPP=digits;
- const L=n=>document.querySelectorAll('[data-link="'+n+'"]');
- L("wa").forEach(a=>a.href="https://wa.me/"+WHATSAPP);
- L("tel").forEach(a=>a.href="tel:+"+WHATSAPP);
- L("mail").forEach(a=>a.href="mailto:"+d.email);
- L("ig").forEach(a=>a.href=url(d.instagram,"https://instagram.com/"));
- L("yt").forEach(a=>a.href=url(d.youtube,"https://youtube.com/@"));
-FILM=d.filmVideo||"";try{renderFilm()}catch(e){}
- const hv=document.querySelector(".hero-img");
- if(hv&&d.heroVideo){const v=String(d.heroVideo).replace(/["<>]/g,""),ym=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
-  hv.style.cssText="position:relative;overflow:hidden";
-  hv.innerHTML=ym?`<iframe src="https://www.youtube.com/embed/${ym[1]}?autoplay=1&mute=1&loop=1&playlist=${ym[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" style="position:absolute;inset:-2%;width:104%;height:104%;border:0;pointer-events:none"></iframe>`:`<video src="${v}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`}
- if(hv&&d.heroVideo&&hv.insertAdjacentHTML)hv.insertAdjacentHTML("beforeend",SND);
- const nm=String(d.introNames||"Aarav & Meera").trim();
- document.querySelectorAll(".inName").forEach(e=>{e.textContent=nm.toUpperCase();e.setAttribute("font-size",Math.max(5.5,Math.min(11,96/nm.length)).toFixed(1))});
- document.querySelectorAll(".inMono").forEach(e=>{const pt=nm.split(/\s*[&+,]\s*|\s+and\s+/i).filter(Boolean);e.textContent=(pt[0]||"A")[0].toUpperCase()+" ♥ "+(pt[1]||"M")[0].toUpperCase()});
- if(d.introPhoto){document.documentElement.style.setProperty("--introphoto",'url("'+d.introPhoto+'")');document.documentElement.classList.add("hasphoto")}
- TILEV={Wedding:d.vidWedding,Restaurant:d.vidRestaurant,Hotel:d.vidHotel,Event:d.vidEvent};try{renderTiles()}catch(e){}
- if(d.heroImage)document.documentElement.style.setProperty("--hero-img",'url("'+d.heroImage+'")');
- const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
-}
-async function loadSettings(){try{const s=await getDoc(doc(db,"settings","site"));const d=s.exists()?s.data():{};try{localStorage.setItem("alvoS",JSON.stringify(d))}catch(e){}return d}catch(e){console.error(e);return {}}}
-/* ===================================== */
-const app=initializeApp(firebaseConfig);
-const auth=IS_ADMIN?getAuth(app):null;
-const db=getFirestore(app);
-const provider=IS_ADMIN?new GoogleAuthProvider():null;
-
-let products=[],projects=[],currentUser=null,cart=[];
-try{cart=JSON.parse(localStorage.getItem("alvoCart")||"[]")}catch(e){}
-
+/* ALVO CUSTOMS - public site (no Firebase SDK, uses Firestore REST) */
+const CFG={apiKey:"AIzaSyCKBprdUJsrvbvCHoD-EjyZihsenZaJ3LI",projectId:"alvocustoms-c4952"};
+const API="https://firestore.googleapis.com/v1/projects/"+CFG.projectId+"/databases/(default)/documents";
 const $=id=>document.getElementById(id)||document.createElement("div");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
-const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const msg=s=>alert(s);
+const PAGE=document.body.dataset.page||"";
+let WA="919664056178";
+const DEF={announce:"",heroTitle1:"Give every bottle",heroTitle2:"an identity.",heroText:"Premium custom-label packaged drinking water for weddings, hotels, restaurants, businesses and events. Your name, your logo, your design on every bottle.",phone:"+91 96640 56178",whatsapp:"919664056178",email:"alvo.customs@gmail.com",instagram:"alvocustoms",address:"",aboutText:"ALVO CUSTOMS is a custom-branded packaged drinking water brand. We help hotels, restaurants, wedding planners, businesses and families put their own name and design on every bottle they serve.",visionText:"To make every bottle a statement of identity, so that the water on your table carries your brand, your story and your moment."};
 
-function owner(){
- if(!currentUser||currentUser.email.toLowerCase()!==OWNER_EMAIL.toLowerCase())throw Error("Admin access denied.");
-}
-function showTab(id){
+/* ---------- Firestore REST ---------- */
+const enc=v=>{if(v==null)return{nullValue:null};if(v&&v.__ts)return{timestampValue:new Date().toISOString()};if(typeof v==="string")return{stringValue:v};if(typeof v==="boolean")return{booleanValue:v};if(typeof v==="number")return Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v};if(Array.isArray(v))return{arrayValue:{values:v.map(enc)}};return{mapValue:{fields:fields(v)}}};
+const fields=o=>Object.fromEntries(Object.entries(o).filter(([,x])=>x!==undefined).map(([k,x])=>[k,enc(x)]));
+const dec=v=>{if("stringValue"in v)return v.stringValue;if("integerValue"in v)return Number(v.integerValue);if("doubleValue"in v)return v.doubleValue;if("booleanValue"in v)return v.booleanValue;if("timestampValue"in v)return{seconds:Math.floor(Date.parse(v.timestampValue)/1000)};if("arrayValue"in v)return(v.arrayValue.values||[]).map(dec);if("mapValue"in v)return obj(v.mapValue.fields||{});return null};
+const obj=f=>Object.fromEntries(Object.entries(f).map(([k,x])=>[k,dec(x)]));
+async function call(url,opt){const r=await fetch(url,{...opt,signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});if(r.status===404)return null;if(!r.ok)throw Error("Server error "+r.status);return r.json()}
+const idOf=d=>d.name.split("/").pop();
+async function list(col){const out=[];let tok="";do{const j=await call(`${API}/${col}?pageSize=300&key=${CFG.apiKey}${tok?"&pageToken="+encodeURIComponent(tok):""}`);if(!j)break;(j.documents||[]).forEach(d=>out.push({id:idOf(d),...obj(d.fields||{})}));tok=j.nextPageToken||""}while(tok);return out}
+async function get(col,id){const j=await call(`${API}/${col}/${id}?key=${CFG.apiKey}`);return j?{id:idOf(j),...obj(j.fields||{})}:null}
+function add(col,data,id){return call(`${API}/${col}?key=${CFG.apiKey}${id?"&documentId="+id:""}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fields({...data,createdAt:{__ts:1}})})})}
 
-["productsAdmin","ordersAdmin","enquiriesAdmin","projectsAdmin","siteAdmin","settingsAdmin"].forEach(x=>$(x).hidden=x!==id);
-}
-function closeModal(id){$(id).classList.remove("show")}
-function openCart(){$("cartModal").classList.add("show")}
-function updateCount(){$("cartCount").textContent=cart.reduce((s,x)=>s+x.qty,0);try{localStorage.setItem("alvoCart",JSON.stringify(cart))}catch(e){}}
-function total(){return cart.reduce((s,x)=>s+x.price*x.qty,0)}
-
-function renderCart(){
- $("cartItems").innerHTML=cart.length?cart.map(x=>`
- <div class="cartrow">
-  <div><b>${safe(x.name)}</b><br><small>${money(x.price)} each</small>
-  <br><button class="smallbtn" onclick="removeItem('${x.id}')">Remove</button></div>
-  <div><button class="smallbtn" onclick="changeQty('${x.id}',-1)">−</button>
-  ${x.qty} <button class="smallbtn" onclick="changeQty('${x.id}',1)">+</button></div>
- </div>`).join(""):'<div class="empty">Your cart is empty.</div>';
- $("cartTotal").textContent=money(total());
-}
-function addToCart(id,silent){
- const q=Math.max(1,parseInt(document.getElementById("q_"+id)?.value)||1);
- const p=products.find(x=>x.id===id);
- if(!p||!p.active)return msg("Product unavailable.");
- const item=cart.find(x=>x.id===id);
- if(item)item.qty+=q;
- else cart.push({id:p.id,name:p.name,price:Number(p.price),qty:q});
- updateCount();renderCart();if(!silent)toast("Added to cart ✓");
-}
-function buyNow(id){addToCart(id,true);openCart()}
-function changeQty(id,n){
- const x=cart.find(x=>x.id===id);if(!x)return;
- x.qty+=n;if(x.qty<=0)cart=cart.filter(x=>x.id!==id);
- updateCount();renderCart();
-try{const cu=JSON.parse(localStorage.getItem("alvoUser")||"null"),cf=$("checkoutForm");if(cu&&cf.elements)["name","business","phone","address"].forEach(k=>{if(cf.elements[k]&&cu[k])cf.elements[k].value=cu[k]})}catch(e){}
-if(location.hash==="#bag")openCart();
-}
-function removeItem(id){cart=cart.filter(x=>x.id!==id);updateCount();renderCart()}
-function openCheckout(){
- if(!cart.length)return msg("Your cart is empty.");
- closeModal("cartModal");$("checkoutModal").classList.add("show");
+/* ---------- data cache (instant repeat visits) ---------- */
+const D={products:[],editions:[],reels:[],clients:[]};
+const byNew=(a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0);
+const byOrd=(a,b)=>(Number(a.order)||0)-(Number(b.order)||0)||byNew(a,b);
+async function load(col,done){
+ let c=null;try{c=JSON.parse(sessionStorage.getItem("alvo_"+col))}catch(e){}
+ if(c){D[col]=c;done()}
+ try{const l=await list(col);D[col]=l;try{sessionStorage.setItem("alvo_"+col,JSON.stringify(l))}catch(e){}done()}
+ catch(e){console.error(e);if(!c)done(e)}
 }
 
-let curCat="All",catSet=false;
-function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
-const pcard=p=>`<article class="card">
- <div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async" onerror="this.src='https://placehold.co/600x450/0c1a24/6fe3ea?text=ALVO'"></div>
- <div class="card-body"><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small>
-  <h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3>
-  <div class="price">${money(p.price)} <small class="muted" style="font-size:12px;font-weight:400">/ bottle</small></div>
-  <div class="card-actions"><button class="btn outline" onclick="openProduct('${p.id}')">View Details</button><button class="btn" onclick="addToCart('${p.id}')">Add</button></div></div></article>`;
-const PAL=["#d6162b","#1f9d3a","#1c6fe0","#e8981a","#7a2ee0","#0f8f8a"];
-const postcard=(p,i)=>`<article class="card poster" style="--pc:${safe(p.color||PAL[i%PAL.length])}"><h3 onclick="openProduct('${p.id}')">${safe(p.name)}</h3><div class="product-image" onclick="openProduct('${p.id}')"><span class="ribbon">Sample Design</span>${p.video?'<span class="vbadge">▶ Video</span>':""}<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"></div><div class="pfoot"><span class="price">${money(p.price)}</span><button class="plus" aria-label="Add to bag" onclick="addToCart('${p.id}')">+</button></div></article>`;
-let rackCat="All",FILM="",TILEV={};
+/* ---------- site settings ---------- */
+function apply(s){
+ const d={...DEF};Object.keys(s||{}).forEach(k=>{if(s[k])d[k]=s[k]});
+ document.querySelectorAll("[data-s]").forEach(e=>{const v=d[e.dataset.s];if(v)e.textContent=v});
+ const dg=String(d.whatsapp).replace(/\D/g,"");if(dg)WA=dg;
+ const L=n=>document.querySelectorAll('[data-link="'+n+'"]');
+ L("wa").forEach(a=>a.href="https://wa.me/"+WA);L("tel").forEach(a=>a.href="tel:+"+WA);L("mail").forEach(a=>a.href="mailto:"+d.email);
+ L("ig").forEach(a=>a.href=/^https?:/.test(d.instagram)?d.instagram:"https://instagram.com/"+String(d.instagram).replace(/^@/,""));
+ const an=document.getElementById("announce");if(an){an.textContent=d.announce||"";an.hidden=!d.announce}
+ const ha=document.getElementById("heroArt");if(ha&&d.heroImage&&ha.dataset.img!==d.heroImage){ha.dataset.img=d.heroImage;ha.innerHTML=`<img src="${esc(d.heroImage)}" alt="ALVO CUSTOMS bottles">`}
+}
+
+/* ---------- video helpers ---------- */
 const YTR=/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/;
 const SND='<button class="snd" type="button" aria-label="Sound on/off">🔇</button>';
-function bgMedia(v,poster){
+const isMp4=v=>/\.(mp4|webm)(\?|$)/i.test(v);
+function bg(v,poster){
  v=String(v||"").replace(/["<>]/g,"");if(!v||v.startsWith("fs:"))return "";
  const m=v.match(YTR);
  if(m)return `<iframe data-lazy data-src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" tabindex="-1"></iframe>${SND}`;
- if(/\.(mp4|webm)(\?|$)/i.test(v))return `<video data-reel src="${v}"${poster?` poster="${safe(poster)}"`:""} muted loop playsinline preload="none"></video>${SND}`;
+ if(isMp4(v))return `<video data-reel src="${v}"${poster?` poster="${esc(poster)}"`:""} muted loop playsinline preload="none"></video>${SND}`;
  return "";
 }
-function renderTiles(){
- document.querySelectorAll(".tile[data-cat]").forEach(t=>{
-  const c=t.dataset.cat,box=t.querySelector(".tvid");if(!box)return;
-  const pv=products.find(p=>p.active===true&&(p.category||"")===c&&p.video&&!String(p.video).startsWith("fs:"));
-  const h=bgMedia(TILEV[c]||(pv&&pv.video));
-  if(box.dataset.h!==h){box.dataset.h=h;box.innerHTML=h;t.classList.toggle("has",!!h)}
- });
-}
-function setRack(c){rackCat=c;renderRack()}
-function renderRack(){
- const act=products.filter(p=>p.active===true);
- const cats=[...new Set(act.map(p=>p.category||"Custom"))];
- const list=(rackCat==="All"?act:act.filter(p=>(p.category||"Custom")===rackCat)).slice(0,24);
- $("rackChips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===rackCat?" on":""}" onclick="setRack('${safe(c)}')">${safe(c)}</button>`).join(""):"";
- $("rackIn").innerHTML=list.map((p,i)=>`<div class="hang" style="animation-delay:-${(i%5)*.9}s" onclick="openProduct('${p.id}')"><i class="hook"></i><div class="hbody"><img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></div>`).join("");
- $("rack").hidden=!act.length;
-}
-function mvid(v){v=String(v).replace(/["<>]/g,"");const m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?`<iframe src="https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1&loop=1&playlist=${m[1]}&controls=0&playsinline=1&rel=0&enablejsapi=1" allow="autoplay" loading="lazy"></iframe>`:`<video src="${v}" autoplay muted loop playsinline></video>`}
-function renderFilm(){
- const fm=$("film"),act=products.filter(p=>p.active===true);
- const pv=act.find(p=>p.video&&!String(p.video).startsWith("fs:")),v=FILM||(pv&&pv.video);
- if(!v){fm.hidden=true;return}
- const imgs=[...act.map(p=>p.image),...projects.map(p=>p.image)].filter(Boolean).slice(0,12);
- const col=a=>a.length?`<div class="ftrack">${[...a,...a].map(s=>`<img src="${safe(s)}" alt="" loading="lazy" decoding="async">`).join("")}</div>`:"";
- if(fm.dataset.v!==v){$("filmMid").innerHTML=mvid(v)+SND;fm.dataset.v=v}
- $("filmL").innerHTML=col(imgs.filter((_,i)=>i%2===0));$("filmR").innerHTML=col(imgs.filter((_,i)=>i%2===1));
- fm.hidden=false;
-}
-function renderProducts(){
- const act=products.filter(p=>p.active===true);
- const list=curCat==="All"?act:act.filter(p=>(p.category||"Custom")===curCat);
- $("productGrid").innerHTML=list.map(pcard).join("")||'<div class="empty">No products in this category yet.</div>';
- const cats=[...new Set(act.map(p=>p.category||"Custom"))];
- $("chips").innerHTML=cats.length>1?["All",...cats].map(c=>`<button class="chip${c===curCat?" on":""}" onclick="setCat('${safe(c)}')">${safe(c)}</button>`).join(""):"";
- const feat=act.filter(p=>p.featured===true);
- $("featuredRow").innerHTML=(feat.length?feat:act.slice(0,6)).map((p,i)=>postcard(p,i)).join("")||'<div class="empty">New products coming soon.</div>';
- const mo=act.filter(p=>p.video);
- $("reelRow").innerHTML=mo.map(p=>`<article class="reel" onclick="openProduct('${p.id}')">${bgMedia(p.video,p.image)||`<img src="${safe(p.image)}" alt="${safe(p.name)}" loading="lazy" decoding="async"><span class="pl">▶</span>`}<div class="reel-info"><b>${safe(p.name)}</b><span>${money(p.price)}</span></div></article>`).join("");
- $("motion").hidden=!mo.length;
- renderRack();renderFilm();renderTiles();
-}
-function setCat(c){curCat=c;renderProducts()}
-async function loadProducts(){
- try{
-  if(!IS_ADMIN&&!products.length){try{const ca=sessionStorage.getItem("alvoP");if(ca){products=JSON.parse(ca);if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}renderProducts()}}catch(e){}}
-  const snap=await getDocs(collection(db,"products"));
-  products=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
-  if(!catSet){catSet=true;const q=new URLSearchParams(location.search).get("cat");if(q)curCat=q}
-  if(!IS_ADMIN)try{sessionStorage.setItem("alvoP",JSON.stringify(products))}catch(e){}
-  renderProducts();renderAdminProducts();
- }catch(e){console.error(e);$("productGrid").innerHTML=$("featuredRow").innerHTML='<div class="empty">Products could not be loaded ('+safe(e.message)+'). Please reload.</div>'}
-}
-const stageImg=p=>`<div class="product-image pm-img"><span class="ribbon">Sample Design</span><img src="${safe(p.image)}" alt="${safe(p.name)}"></div>`;
-function stageVid0(p){
- const v=String(p.video||""),m=v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
- if(v.startsWith("fs:"))return `<div class="vwrap"><video id="fsVid" poster="${safe(p.image)}" controls playsinline muted></video><div class="vload" id="fsLoad">Loading video…</div></div>`;
- if(m)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}&enablejsapi=1" allow="accelerometer;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>${SND}</div>`;
- return `<div class="vwrap"><video src="${safe(v)}" poster="${safe(p.image)}" controls autoplay muted loop playsinline preload="metadata"></video>${SND}</div>`;
-}
-function pmShow(id,kind,btn){
- const p=products.find(x=>x.id===id);if(!p)return;
- $("pmStage").innerHTML=kind==="vid"?stageVid(p):stageImg(p);
- if(kind==="vid"&&String(p.video).startsWith("fs:"))playFs(p.video);
- btn.parentNode.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));btn.classList.add("on");
-}
-function openProduct(id){
- const p=products.find(x=>x.id===id);if(!p)return;
- $("pmBody").innerHTML=`<div class="pm-grid"><div><div id="pmStage">${p.video?stageVid(p):stageImg(p)}</div>${p.video?`<div class="chips" style="margin:12px 0 0;justify-content:flex-start"><button class="chip${p.video?"":" on"}" onclick="pmShow('${p.id}','img',this)">Photo</button><button class="chip on" onclick="pmShow('${p.id}','vid',this)">▶ Video</button></div>`:""}</div>
- <div><small class="gold">${safe(p.category||"Custom")}${p.size?" · "+safe(p.size):""}</small><h2 style="font-size:30px;margin:4px 0">${safe(p.name)}</h2>
- <div class="price" style="font-size:26px">${money(p.price)} <small class="muted" style="font-size:13px;font-weight:400">/ bottle, incl. GST</small></div>
- <p class="muted">${safe(p.description||"")}</p>
- ${p.details?`<p class="muted" style="white-space:pre-line;margin-top:8px">${safe(p.details)}</p>`:""}
- <ul class="spec"><li>This is a <b>sample design</b>. Your final label is made with your own logo and details.</li><li>Design is shared for your approval before production.</li><li>Bulk pricing on request.</li></ul>
- <div class="buyrow"><label class="muted" for="q_${p.id}">Qty</label><input class="qty" id="q_${p.id}" type="number" min="1" value="1" inputmode="numeric"></div>
- <div class="card-actions"><button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button><button class="btn outline" onclick="buyNow('${p.id}');closeModal('productModal')">Buy Now</button></div>
- <button class="btn outline" style="width:100%;margin-top:10px" onclick="enquireProduct('${p.id}')">Customise on WhatsApp</button></div></div>`;
- $("productModal").classList.add("show");
- if(String(p.video||"").startsWith("fs:"))playFs(p.video);
-}
-function enquireProduct(id){const p=products.find(x=>x.id===id);window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent("Hi ALVO CUSTOMS, I want a custom label for: "+(p?p.name:"")+". Please share details."),"_blank")}
-
-async function loadProjects(){
- try{
-  const snap=await getDocs(collection(db,"clients"));
-  projects=snap.docs.map(d=>({id:d.id,...d.data()})).sort(byNew);
-  const card=p=>`<article class="card"><img class="project-image" loading="lazy" decoding="async" src="${safe(p.image)}" alt="${safe(p.name)}">
-   <div class="card-body"><h3>${safe(p.name)}</h3><p>${safe(p.description||"")}</p></div></article>`;
-  $("projectGrid").innerHTML=projects.map(card).join("")||'<div class="empty">Our projects will appear here.</div>';
-  $("projectRow").innerHTML=projects.slice(0,8).map(card).join("");
-  $("workTeaser").hidden=!projects.length;renderFilm();
-  renderAdminProjects();
- }catch(e){console.error(e)}
-}
-
-async function placeOrder(data){
- let u=null;try{u=JSON.parse(localStorage.getItem("alvoUser")||"null")}catch(e){}
- if(u&&u.uid&&!IS_ADMIN){
-  try{
-   const [A,F,Au]=await Promise.all([import(FB+"firebase-app.js"),import(FB+"firebase-firestore.js"),import(FB+"firebase-auth.js")]);
-   const ap=A.getApps().find(x=>x.name==="cust")||A.initializeApp(firebaseConfig,"cust");
-   const au=Au.getAuth(ap);await au.authStateReady();
-   if(au.currentUser&&au.currentUser.uid===u.uid){
-    return await F.addDoc(F.collection(F.getFirestore(ap),"orders"),{...data,uid:u.uid,email:au.currentUser.email||"",createdAt:F.serverTimestamp()});
-   }
-  }catch(e){console.error(e)}
- }
- return addDoc(collection(db,"orders"),{...data,createdAt:serverTimestamp()});
-}
-$("checkoutForm").addEventListener("submit",async e=>{
- e.preventDefault();if(!cart.length)return msg("Cart is empty.");
- const f=new FormData(e.target);
- const customer={name:f.get("name").trim(),business:f.get("business").trim(),phone:f.get("phone").trim(),address:f.get("address").trim(),note:f.get("note").trim()};
- const items=cart.map(x=>({productId:x.id,name:x.name,price:x.price,quantity:x.qty}));
- const amount=total(),button=e.target.querySelector("button[type=submit]");
-
-button.disabled=true;button.textContent="Saving order...";
- try{
-  const result=await placeOrder({...customer,items,total:amount,status:"New"});
-  let textMsg=`ALVO CUSTOMS ORDER\nOrder ID: ${result.id}\nName: ${customer.name}\nBusiness: ${customer.business}\nPhone: ${customer.phone}\nAddress: ${customer.address}\n\n`;
-  items.forEach((x,i)=>textMsg+=`${i+1}. ${x.name} x ${x.quantity} = ${money(x.price*x.quantity)}\n`);
-  textMsg+=`\nTOTAL: ${money(amount)}\nNote: ${customer.note}`;
-  cart=[];updateCount();renderCart();e.target.reset();closeModal("checkoutModal");
-  window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(textMsg),"_blank");
-  msg("Order saved. Please press Send in WhatsApp to confirm.");
- }catch(err){console.error(err);msg("Order could not be saved. Please try again.")}
- finally{button.disabled=false;button.textContent="Place Order on WhatsApp"}
-});
-
-$("enquiryForm").addEventListener("submit",e=>{
- e.preventDefault();const f=new FormData(e.target);
- addDoc(collection(db,"enquiries"),{name:f.get("name"),business:f.get("business"),phone:f.get("phone"),qty:f.get("qty"),message:f.get("message"),createdAt:serverTimestamp()}).catch(console.error);
- const textMsg=`ALVO CUSTOMS ENQUIRY\nName: ${f.get("name")}\nBusiness: ${f.get("business")}\nPhone: ${f.get("phone")}\nQuantity: ${f.get("qty")}\nRequirement: ${f.get("message")}`;
- window.open("https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(textMsg),"_blank");
-});
-
-async function adminSignIn(){
- try{
-  const result=await signInWithPopup(auth,provider);
-  if(result.user.email.toLowerCase()!==OWNER_EMAIL.toLowerCase()){
-   await signOut(auth);msg("This Gmail is not authorized.");return;
-  }
- }catch(e){msg("Login failed: "+e.message)}
-}
-async function adminSignOut(){await signOut(auth);location.hash="";location.reload()}
-
-const isAdminPage=!!document.getElementById("adminPage");
-if(IS_ADMIN)onAuthStateChanged(auth,async user=>{
- currentUser=user;
- if(!isAdminPage)return;
- const isAdmin=!!user&&user.email.toLowerCase()===OWNER_EMAIL.toLowerCase();
- $("adminLogin").style.display=isAdmin?"none":"block";
- $("adminDashboard").style.display=isAdmin?"block":"none";
- if(isAdmin){
-  const s=await loadSettings(),f=$("siteForm");
-  Object.keys(s).forEach(k=>{if(f.elements[k]&&f.elements[k].type!=="file")f.elements[k].value=s[k]});
-  await Promise.all([loadProducts(),loadProjects(),loadOrders(),loadEnquiries()]);
- }
-});
-
-async function uploadImage(file,folder){
- owner();
- if(!file||!file.type.startsWith("image/"))throw Error("Select a valid image.");
- if(file.size>12*1024*1024)throw Error("Image must be under 12 MB.");
- const u=URL.createObjectURL(file);
- const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(Error("Could not read image."));i.src=u});
- const hero=folder==="settings",maxW=hero?1200:640,cap=hero?260000:110000;
- const sc=Math.min(1,maxW/img.width);
- let c=document.createElement("canvas");
- c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
- const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
- for(let t=0;t<4;t++){
-  for(const q of [.72,.6,.5,.4]){const out=c.toDataURL("image/jpeg",q);if(out.length<=cap)return out}
-  const c2=document.createElement("canvas");c2.width=Math.round(c.width*.8);c2.height=Math.round(c.height*.8);c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);c=c2;
- }
- throw Error("Image is too detailed. Try a smaller photo.");
-}
-
-async function uploadVideo(file){
- owner();
- if(!file.type.startsWith("video/"))throw Error("Select a video file.");
- if(file.size>7*1024*1024)throw Error("Video must be under 7 MB. Trim it, or use a YouTube link.");
- const buf=new Uint8Array(await file.arrayBuffer()),CH=600*1024,id="v"+Date.now(),n=Math.ceil(buf.length/CH);
- for(let i=0;i<n;i++){
-  const part=buf.subarray(i*CH,(i+1)*CH);let s="";
-  for(let k=0;k<part.length;k+=8192)s+=String.fromCharCode.apply(null,part.subarray(k,k+8192));
-  await setDoc(doc(db,"videos",id+"_"+i),{n,i,type:file.type,data:btoa(s)});
-  toast("Uploading video "+(i+1)+"/"+n);
- }
- return "fs:"+id+":"+n+":"+file.type;
-}
-function stageVid(p){
- const v=String(p.video||"");
- if(v.startsWith("fs:"))return stageVid0(p);
- const ig=v.match(/instagram\.com\/(?:reels?|p|tv)\/([\w-]+)/),dr=v.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
- const h=ig?`<div class="vwrap tall"><iframe src="https://www.instagram.com/reel/${ig[1]}/embed/" allowfullscreen loading="lazy"></iframe></div>`
-  :dr?`<div class="vwrap"><iframe src="https://drive.google.com/file/d/${dr[1]}/preview" allow="autoplay" allowfullscreen loading="lazy"></iframe></div>`:stageVid0(p);
- return h+`<p class="notice" style="margin-top:8px">Video not playing? <a class="gold" href="${safe(v)}" target="_blank" rel="noopener">Open it in a new tab</a></p>`;
+function player(v,poster){
+ v=String(v||"").replace(/["<>]/g,"");
+ if(v.startsWith("fs:"))return `<video id="fsVid" poster="${esc(poster||"")}" controls playsinline muted></video><div class="pl" id="fsLoad" style="pointer-events:none">⏳</div>`;
+ const m=v.match(YTR);
+ if(m)return `<iframe src="https://www.youtube.com/embed/${m[1]}?rel=0&playsinline=1&autoplay=1&mute=1&loop=1&playlist=${m[1]}&enablejsapi=1" allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>${SND}`;
+ const ig=v.match(/instagram\.com\/(?:reels?|p|tv)\/([\w-]+)/);if(ig)return `<iframe src="https://www.instagram.com/reel/${ig[1]}/embed/" allowfullscreen></iframe>`;
+ const dr=v.match(/drive\.google\.com\/file\/d\/([\w-]+)/);if(dr)return `<iframe src="https://drive.google.com/file/d/${dr[1]}/preview" allow="autoplay" allowfullscreen></iframe>`;
+ return `<video src="${v}" poster="${esc(poster||"")}" controls autoplay muted loop playsinline></video>${SND}`;
 }
 const fsCache={};
-async function playFs(v){
+async function fsLoad(v){
  const el=document.getElementById("fsVid"),ld=document.getElementById("fsLoad");if(!el)return;
  try{
   if(!fsCache[v]){
    const [,id,n,...t]=v.split(":");
-   const snaps=await Promise.all(Array.from({length:+n},(_,i)=>getDoc(doc(db,"videos",id+"_"+i))));
-   const parts=snaps.map(s=>Uint8Array.from(atob(s.data().data),ch=>ch.charCodeAt(0)));
-   fsCache[v]=URL.createObjectURL(new Blob(parts,{type:t.join(":")}));
+   const parts=await Promise.all(Array.from({length:+n},(_,i)=>get("videos",id+"_"+i)));
+   fsCache[v]=URL.createObjectURL(new Blob(parts.map(p=>Uint8Array.from(atob(p.data),c=>c.charCodeAt(0))),{type:t.join(":")}));
   }
   el.src=fsCache[v];ld.remove();el.play().catch(()=>{});
- }catch(e){console.error(e);ld.textContent="Video could not be loaded ("+e.message+"). Check the Firebase Rules for videos."}
+ }catch(e){console.error(e);ld.textContent="Video could not be loaded";ld.style.cssText="pointer-events:none;width:auto;border-radius:10px;padding:8px 12px;font-size:12px"}
 }
-$("productForm").addEventListener("submit",async e=>{
- e.preventDefault();const form=e.target,button=form.querySelector("button[type=submit]");
- button.disabled=true;
- try{
-  owner();const f=new FormData(form),id=f.get("id");
-  const name=f.get("name").trim(),price=Number(f.get("price"));
-  if(!name||!Number.isFinite(price)||price<0)throw Error("Enter a valid name and price.");
-  const file=f.get("image");let image=f.get("imageUrl").trim();
-  if(file&&file.size)image=await uploadImage(file,"products");
-  else if(id&&!image)image=products.find(p=>p.id===id)?.image||"";
-  if(!image)throw Error("Add an image URL or upload an image.");
-  let vid=f.get("video").trim();if(vid&&!/^(https?:\/\/|fs:|[\w\-.\/]+\.(mp4|webm)$)/i.test(vid))throw Error("Video link must be a YouTube/https link or a .mp4 file name.");const vf=f.get("videoFile");if(vf&&vf.size)vid=await uploadVideo(vf);const data={name,price,video:vid,size:f.get("size").trim(),color:(f.get("color")==="#6e1f38"?"":f.get("color")),category:f.get("category"),details:f.get("details").trim(),featured:f.get("featured")==="true",description:f.get("description").trim(),image,active:f.get("active")==="true",updatedAt:serverTimestamp()};
-  if(id)await updateDoc(doc(db,"products",id),data);
-  else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
-  form.reset();form.elements.id.value="";await loadProducts();msg("Product saved.");
- }catch(err){console.error(err);msg(err.message)}
- finally{button.disabled=false}
-});
+function modal(html){
+ let m=document.getElementById("mdl");
+ if(!m){m=document.createElement("div");m.id="mdl";m.className="overlay";m.innerHTML='<div class="modal"><button class="close" aria-label="Close">×</button><div id="mdlb"></div></div>';document.body.appendChild(m);
+  m.onclick=e=>{if(e.target===m||e.target.classList.contains("close")){m.classList.remove("show");document.getElementById("mdlb").innerHTML=""}}}
+ document.getElementById("mdlb").innerHTML=html;m.classList.add("show");
+}
+function openVideo(v,title,poster){modal(`<div class="vw">${player(v,poster)}</div><p style="margin-top:10px;font-weight:600">${esc(title||"")}</p>`);if(String(v).startsWith("fs:"))fsLoad(v)}
+function openImg(src,title,desc){modal(`<img class="big" src="${esc(src)}" alt="${esc(title)}"><h3 style="margin:12px 0 4px">${esc(title)}</h3><p class="muted">${esc(desc||"")}</p>`)}
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
 
-function renderAdminProducts(){
- $("adminProductList").innerHTML=products.map(p=>`
- <div class="adminrow"><img src="${safe(p.image)}"><div class="grow"><b>${safe(p.name)}</b><br><small>${money(p.price)} · ${p.active?"Active":"Draft"}</small></div>
- <button class="smallbtn" onclick="editProduct('${p.id}')">Edit</button><button class="smallbtn" onclick="deleteProduct('${p.id}')">Delete</button></div>`).join("")||'<p class="notice">No products yet.</p>';
+/* ---------- cards ---------- */
+function pcard(p){
+ const off=p.available===false;
+ return `<article class="card"><a class="pimg" href="product.html?id=${p.id}">${off?'<span class="badge off">Unavailable</span>':p.featured?'<span class="badge">Featured</span>':""}<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" decoding="async"></a>
+<div class="pb">${p.edition?`<span class="tag">${esc(p.edition)}</span>`:""}<h3>${esc(p.name)}</h3>
+<div class="meta">${esc(p.size||"")}${p.size&&p.bottlesPerBox?" · ":""}${p.bottlesPerBox?esc(p.bottlesPerBox)+" bottles per box":""}</div>
+<div class="price">${money(p.boxPrice)} <small>/ box</small></div>
+<a class="btn aq sm" href="product.html?id=${p.id}">Select Product</a></div></article>`;
 }
-function editProduct(id){
- owner();const p=products.find(x=>x.id===id);if(!p)return;
- const f=$("productForm");f.elements.id.value=p.id;f.elements.name.value=p.name;f.elements.price.value=p.price;f.elements.description.value=p.description||"";f.elements.imageUrl.value=p.image||"";f.elements.active.value=String(p.active===true);f.elements.size.value=p.size||"";f.elements.color.value=p.color||"#6e1f38";f.elements.video.value=p.video||"";f.elements.category.value=p.category||"Classic";f.elements.details.value=p.details||"";f.elements.featured.value=String(p.featured===true);f.scrollIntoView({behavior:"smooth"});
-}
-function resetProductForm(){$("productForm").reset();$("productForm").elements.id.value=""}
-async function deleteProduct(id){
- try{owner();if(!confirm("Delete this product?"))return;await deleteDoc(doc(db,"products",id));await loadProducts();msg("Product deleted.")}catch(e){msg(e.message)}
-}
+const gitem=(c,i)=>`<div class="gi" data-i="${i}"><img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" decoding="async"><div><b>${esc(c.name)}</b><span>${esc(c.category||c.description||"")}</span></div></div>`;
+function gallery(el,items){el.innerHTML=items.map(gitem).join("")||'<div class="empty">Our projects will appear here soon.</div>';el.onclick=e=>{const g=e.target.closest(".gi");if(!g)return;const c=items[+g.dataset.i];openImg(c.image,c.name,[c.category,c.description].filter(Boolean).join(" · "))}}
 
-
-async function loadOrders(){
- try{
-  owner();const snap=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc")));
-  $("adminOrders").innerHTML=snap.docs.map(d=>{
-   const o=d.data();
-   return `<div class="panel" style="padding:15px;margin-top:12px">
-   <b>Order #${safe(d.id)}</b> <span class="gold">${money(o.total)}</span>
-   <p>${safe(o.name)} · ${safe(o.business||"")} · ${safe(o.phone)}</p>
-   <p class="notice">${safe(o.address||"")}</p>
-   <p>${(o.items||[]).map(x=>safe(x.name)+" × "+Number(x.quantity)).join("<br>")}</p>
-   <p>Status: ${safe(o.status||"New")}</p>
-   <button class="smallbtn" onclick="updateOrder('${d.id}','Processing')">Processing</button>
-   <button class="smallbtn" onclick="updateOrder('${d.id}','Completed')">Completed</button>
-   <button class="smallbtn" onclick="delItem('orders','${d.id}')">Delete</button>
-   </div>`;
-  }).join("")||'<p class="notice">No orders yet.</p>';
- }catch(e){console.error(e);$("adminOrders").textContent="Could not load orders."}
+/* ---------- pages ---------- */
+function rHome(e){
+ const act=D.products.filter(p=>p.active!==false);
+ let eds=D.editions.filter(x=>x.active!==false).sort(byOrd);
+ if(!eds.length){const m=new Map();act.forEach(p=>{if(p.edition&&!m.has(p.edition))m.set(p.edition,{name:p.edition,tagline:"",image:p.image})});eds=[...m.values()]}
+ $("edRow").innerHTML=eds.map(x=>`<a class="ed" href="products.html?edition=${encodeURIComponent(x.name)}" style="background-image:url('${esc(x.image)}')"><small>Edition</small><h3>${esc(x.name)}</h3><p>${esc(x.tagline||"")}</p></a>`).join("");
+ $("edSec").hidden=!eds.length;
+ const f=act.filter(p=>p.featured),l=(f.length?f:act).slice(0,8);
+ $("featGrid").innerHTML=e?`<div class="empty">Could not load products (${esc(e.message)}). Please reload.</div>`:l.map(pcard).join("");
+ $("featSec").hidden=!act.length&&!e;
+ const rs=D.reels.filter(r=>r.active!==false).sort(byOrd);
+ $("reelRow").innerHTML=rs.map((r,i)=>`<article class="reel" data-i="${i}">${bg(r.video,r.thumb)||`<img src="${esc(r.thumb)}" alt="${esc(r.title)}" loading="lazy"><span class="pl">▶</span>`}<div class="ri">${esc(r.title)}</div></article>`).join("");
+ $("reelRow").onclick=ev=>{const a=ev.target.closest(".reel");if(!a)return;const r=rs[+a.dataset.i];openVideo(r.video,r.title,r.thumb)};
+ $("reelSec").hidden=!rs.length;
+ const w=D.clients.filter(c=>c.active!==false).sort(byNew).slice(0,6);
+ gallery($("workGal"),w);$("workSec").hidden=!w.length;
 }
-async function updateOrder(id,status){
- try{owner();await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});await loadOrders();msg("Order updated.")}catch(e){msg(e.message)}
-
+let CAT="All";
+function rProducts(e){
+ const q=new URLSearchParams(location.search).get("edition");
+ const act=D.products.filter(p=>p.active!==false);
+ const cats=[...new Set(act.map(p=>p.category).filter(Boolean))];
+ $("chips").innerHTML=(q?'<a class="chip" href="products.html">All Editions</a>':"")+(cats.length?["All",...cats].map(c=>`<button class="chip${c===CAT?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join(""):"");
+ let l=act;if(q)l=l.filter(p=>p.edition===q);if(CAT!=="All")l=l.filter(p=>p.category===CAT);
+ $("pgrid").innerHTML=e?`<div class="empty">Could not load products (${esc(e.message)}). Please reload.</div>`:(l.map(pcard).join("")||'<div class="empty">No products found.</div>');
+ if(q)$("ptitle").textContent=q;
 }
+$("chips").onclick=e=>{const b=e.target.closest("button[data-c]");if(b){CAT=b.dataset.c;rProducts()}};
+function rWork(e){const w=D.clients.filter(c=>c.active!==false).sort(byNew);gallery($("workAll"),w)}
 
-$("projectForm").addEventListener("submit",async e=>{
- e.preventDefault();const form=e.target,button=form.querySelector("button");
- button.disabled=true;
- try{
-  owner();const f=new FormData(form),file=f.get("image");
-  const image=await uploadImage(file,"clients");
-  await addDoc(collection(db,"clients"),{name:f.get("name").trim(),description:f.get("description").trim(),image,createdAt:serverTimestamp()});
-  form.reset();await loadProjects();msg("Project uploaded.");
- }catch(err){msg(err.message)}
- finally{button.disabled=false}
-});
-function renderAdminProjects(){
- $("adminProjectList").innerHTML=projects.map(p=>`
- <div class="adminrow"><img src="${safe(p.image)}"><div class="grow"><b>${safe(p.name)}</b><br><small>${safe(p.description||"")}</small></div><button class="smallbtn" onclick="deleteProject('${p.id}')">Delete</button></div>`).join("")||'<p class="notice">No projects yet.</p>';
+async function rProduct(){
+ const box=$("pd"),id=new URLSearchParams(location.search).get("id");
+ const nf=m=>{box.innerHTML=`<div class="empty">${m} <a class="acc" href="products.html">View all products</a></div>`};
+ if(!id)return nf("Product not found.");
+ let p,m;
+ try{[p,m]=await Promise.all([get("products",id),get("productMedia",id).catch(()=>null)])}catch(e){return nf("Could not load this product ("+esc(e.message)+").")}
+ if(!p||p.active===false)return nf("This product is not available.");
+ document.title=p.name+" | ALVO CUSTOMS";
+ const bpb=Number(p.bottlesPerBox)||0,price=Number(p.boxPrice)||0,min=Math.max(1,Number(p.minBoxes)||1),off=p.available===false;
+ const items=[...[p.image,...((m&&m.images)||[])].filter(Boolean).map(s=>({t:"i",s})),...((m&&m.videos)||[]).filter(Boolean).map(s=>({t:"v",s}))];
+ box.innerHTML=`<div><div class="viewer" id="viewer"></div><div class="vt" id="vt"></div></div>
+<div>${p.edition?`<span class="tag">${esc(p.edition)}</span>`:""}<h1 style="font-size:clamp(30px,5vw,44px);margin:6px 0">${esc(p.name)}</h1><p class="muted">${esc(p.description||"")}</p>
+<ul class="spec"><li><span>Bottle size</span><b>${esc(p.size||"-")}</b></li><li><span>Bottles per box</span><b>${bpb||"-"}</b></li>${p.design?`<li><span>Design</span><b>${esc(p.design)}</b></li>`:""}<li><span>Minimum order</span><b>${min} box${min>1?"es":""}</b></li><li><span>Availability</span><b>${off?"Currently unavailable":"In stock"}</b></li></ul>
+<div class="price" style="font-size:30px">${money(price)} <small>/ box${bpb?` (${bpb} bottles)`:""}</small></div>
+<form id="oform" novalidate>
+<div class="field"><label>Quantity (boxes)</label><div class="qr"><button type="button" id="qm" aria-label="Less">−</button><input id="qty" type="number" inputmode="numeric" min="${min}" value="${min}"><button type="button" id="qp" aria-label="More">+</button></div></div>
+<div class="total"><div><span class="muted" style="font-size:12px">Total amount</span><br><span id="tb" class="muted" style="font-size:13px"></span></div><b id="tot"></b></div>
+<div class="field"><label>Your name</label><input id="on" autocomplete="name"><div class="err"></div></div>
+<div class="field"><label>Mobile number</label><input id="op" type="tel" inputmode="tel" autocomplete="tel"><div class="err"></div></div>
+<div class="field"><label>Delivery location</label><input id="ol" autocomplete="street-address"><div class="err"></div></div>
+<div class="field"><label>Required date</label><input id="od" type="date"><div class="err"></div></div>
+<button class="btn wa" style="width:100%" ${off?"disabled":""}>${off?"Currently unavailable":"Order on WhatsApp"}</button>
+<p class="note">Your order stays <b>Pending Confirmation</b> until ALVO CUSTOMS confirms it with you on WhatsApp.</p><div id="okm"></div></form></div>`;
+ const viewer=$("viewer"),vt=$("vt");
+ function show(i){const it=items[i];if(!it)return;viewer.innerHTML=it.t==="i"?`<img src="${esc(it.s)}" alt="${esc(p.name)}">`:player(it.s,p.image);if(it.t==="v"&&String(it.s).startsWith("fs:"))fsLoad(it.s);[...vt.children].forEach((b,j)=>b.classList.toggle("on",j===i))}
+ vt.innerHTML=items.length>1?items.map((it,i)=>`<button type="button" data-i="${i}" aria-label="Media ${i+1}"><img src="${esc(it.t==="i"?it.s:p.image)}" alt="">${it.t==="v"?"<span>▶</span>":""}</button>`).join(""):"";
+ vt.onclick=e=>{const b=e.target.closest("button");if(b)show(+b.dataset.i)};show(0);
+ const q=$("qty"),tot=$("tot"),tb=$("tb");
+ const boxes=()=>Math.max(min,Math.floor(Number(q.value))||min);
+ function upd(){const b=boxes();tot.textContent=money(b*price);tb.textContent=b+" box"+(b>1?"es":"")+(bpb?" · "+(b*bpb)+" bottles":"")}
+ $("qm").onclick=()=>{q.value=Math.max(min,boxes()-1);upd()};$("qp").onclick=()=>{q.value=boxes()+1;upd()};q.oninput=upd;q.onchange=()=>{q.value=boxes();upd()};upd();
+ $("od").min=new Date().toISOString().slice(0,10);
+ const bad=(el,msg)=>{const f=el.closest(".field");f.classList.add("bad");f.querySelector(".err").textContent=msg;return false};
+ $("oform").onsubmit=e=>{
+  e.preventDefault();if(off)return;
+  document.querySelectorAll("#oform .field.bad").forEach(f=>f.classList.remove("bad"));
+  const n=$("on").value.trim(),ph=$("op").value.trim(),lo=$("ol").value.trim(),dt=$("od").value;let ok=true;
+  if(n.length<2)ok=bad($("on"),"Please enter your name.");
+  if(!/^\+?[0-9\s-]{10,15}$/.test(ph))ok=bad($("op"),"Enter a valid mobile number.");
+  if(lo.length<3)ok=bad($("ol"),"Please enter the delivery location.");
+  if(!dt)ok=bad($("od"),"Please choose the required date.");
+  if(!ok)return;
+  const b=boxes(),total=b*price,ref="ALV-"+Date.now().toString(36).toUpperCase().slice(-6);
+  const msg=`Hello ALVO CUSTOMS, I would like to place an order request.\n\nRef: ${ref}\nProduct: ${p.name}${p.edition?" ("+p.edition+")":""}\nBottle size: ${p.size||"-"}\nBottles per box: ${bpb||"-"}\nBoxes: ${b}${bpb?" ("+(b*bpb)+" bottles)":""}\nPrice per box: ${money(price)}\nTotal: ${money(total)}\n\nName: ${n}\nMobile: ${ph}\nDelivery location: ${lo}\nRequired date: ${dt}\n\nStatus: Pending Confirmation`;
+  const url="https://wa.me/"+WA+"?text="+encodeURIComponent(msg);
+  const w=window.open(url,"_blank");if(!w)location.href=url;
+  add("orders",{ref,productId:p.id,productName:p.name,edition:p.edition||"",size:p.size||"",bottlesPerBox:bpb,boxes:b,totalBottles:b*bpb,boxPrice:price,total,name:n,phone:ph,location:lo,date:dt,status:"Pending Confirmation"},ref).catch(console.error);
+  $("okm").innerHTML=`<div class="ok">WhatsApp has opened with your order details (Ref ${ref}). Please press <b>Send</b> in WhatsApp to submit your request.</div>`;
+ };
 }
-async function deleteProject(id){
- try{owner();if(!confirm("Delete this project?"))return;await
-deleteDoc(doc(db,"clients",id));await loadProjects();msg("Project deleted.")}catch(e){msg(e.message)}
+function formHandler(id,type,build){
+ const f=$(id);if(!f.addEventListener)return;
+ f.addEventListener("submit",e=>{
+  e.preventDefault();f.querySelectorAll(".field.bad").forEach(x=>x.classList.remove("bad"));
+  const v=n=>(f.elements[n]?f.elements[n].value.trim():"");let ok=true;
+  const bad=(n,m)=>{const x=f.elements[n].closest(".field");x.classList.add("bad");x.querySelector(".err").textContent=m;ok=false};
+  if(v("name").length<2)bad("name","Please enter your name.");
+  if(!/^\+?[0-9\s-]{10,15}$/.test(v("phone")))bad("phone","Enter a valid mobile number.");
+  if(f.elements.qty&&!v("qty"))bad("qty","Please enter the required quantity.");
+  if(f.elements.msg&&v("msg").length<3)bad("msg","Please write a short message.");
+  if(!ok)return;
+  const data={type,name:v("name"),phone:v("phone"),qty:v("qty"),requirements:v("req"),message:v("msg"),status:"New"};
+  const url="https://wa.me/"+WA+"?text="+encodeURIComponent(build(v));
+  const w=window.open(url,"_blank");if(!w)location.href=url;
+  add("enquiries",data).catch(console.error);toast("WhatsApp opened. Please press Send.");f.reset();
+ });
 }
+formHandler("brandForm","Custom Branding",v=>`Hello ALVO CUSTOMS, I would like custom branding for my bottles.\n\nName: ${v("name")}\nMobile: ${v("phone")}\nRequired quantity: ${v("qty")}\nDesign requirements: ${v("req")||"-"}\nMessage: ${v("msg")}`);
+formHandler("contactForm","Contact",v=>`Hello ALVO CUSTOMS,\n\nName: ${v("name")}\nMobile: ${v("phone")}\nMessage: ${v("msg")}`);
 
-async function loadEnquiries(){
- try{
-  owner();const snap=await getDocs(query(collection(db,"enquiries"),orderBy("createdAt","desc")));
-  $("adminEnquiries").innerHTML=snap.docs.map(d=>{const e=d.data();
-   return `<div class="panel" style="padding:15px;margin-top:12px"><b>${safe(e.name)}</b> · ${safe(e.business||"")}
-   <p><a class="gold" href="tel:${safe(e.phone)}">${safe(e.phone)}</a> · ${safe(e.qty||"")}</p>
-   <p>${safe(e.message)}</p>
-   <button class="smallbtn" onclick="delItem('enquiries','${d.id}')">Delete</button></div>`}).join("")||'<p class="notice">No enquiries yet.</p>';
- }catch(e){console.error(e);$("adminEnquiries").textContent="Could not load enquiries."}
-}
-async function delItem(col,id){
- try{owner();if(!confirm("Delete permanently?"))return;await deleteDoc(doc(db,col,id));if(col==="orders")await loadOrders();else await loadEnquiries()}catch(e){msg(e.message)}
-}
-$("siteForm").addEventListener("submit",async e=>{
- e.preventDefault();const form=e.target,b=form.querySelector("button");b.disabled=true;
- try{
-  owner();const f=new FormData(form),data={};
-  ["announce","heroLine1","heroLine2","heroText","heroVideo","filmVideo","introNames","vidWedding","vidRestaurant","vidHotel","vidEvent","phone","whatsapp","email","instagram","youtube"].forEach(k=>data[k]=String(f.get(k)||"").trim());
-  const file=f.get("heroFile");if(file&&file.size)data.heroImage=await uploadImage(file,"settings");
-  if(f.get("clearHero"))data.heroImage="";
-  const ip=f.get("introFile");if(ip&&ip.size)data.introPhoto=await uploadImage(ip,"settings");
-  if(f.get("clearIntro"))data.introPhoto="";
-  await setDoc(doc(db,"settings","site"),data,{merge:true});msg("Site updated. Refresh the website to see changes.");
- }catch(err){msg(err.message)}finally{b.disabled=false}
-});
-
-async function exportBackup(){
- try{
-  owner();
-  const [p,o,c]=await Promise.all([getDocs(collection(db,"products")),getDocs(collection(db,"orders")),getDocs(collection(db,"clients"))]);
-  const data={exportedAt:new Date().toISOString(),products:p.docs.map(d=>({id:d.id,...d.data()})),orders:o.docs.map(d=>({id:d.id,...d.data()})),projects:c.docs.map(d=>({id:d.id,...d.data()}))};
-  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
-  const a=document.createElement("a");a.href=url;a.download="ALVO-CUSTOMS-BACKUP.json";a.click();URL.revokeObjectURL(url);
- }catch(e){msg(e.message)}
-}
-
-$("year").textContent=new Date().getFullYear();
-
-Object.assign(window,{
-openCart,closeModal,openProduct,pmShow,setCat,setRack,enquireProduct,openCheckout,addToCart,buyNow,changeQty,removeItem,
- adminSignIn,adminSignOut,showTab,editProduct,resetProductForm,
- deleteProduct,updateOrder,delItem,deleteProject,exportBackup
-});
-
-updateCount();renderCart();
-try{applySettings(JSON.parse(localStorage.getItem("alvoS")||"{}"))}catch(e){}
-loadSettings().then(applySettings);
-if(!isAdminPage){
- if(document.getElementById("productGrid")||document.getElementById("featuredRow"))loadProducts();
- if(document.getElementById("projectGrid")||document.getElementById("projectRow"))loadProjects();
-}
+/* ---------- boot ---------- */
+if(document.getElementById("year"))$("year").textContent=new Date().getFullYear();
+$("burger").onclick=()=>$("links").classList.toggle("open");
+try{apply(JSON.parse(localStorage.getItem("alvoS")||"{}"))}catch(e){}
+get("settings","site").then(s=>{s=s||{};try{localStorage.setItem("alvoS",JSON.stringify(s))}catch(e){}apply(s)}).catch(()=>{});
+if(PAGE==="home"){["products","editions","reels","clients"].forEach(c=>load(c,rHome))}
+else if(PAGE==="products"){load("products",rProducts)}
+else if(PAGE==="product"){rProduct()}
+else if(PAGE==="work"){load("clients",rWork)}
