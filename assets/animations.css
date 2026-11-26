@@ -1,0 +1,71 @@
+/* ALVO CUSTOMS — cinematic motion upgrade
+   Keeps the existing HTML structure and uses lightweight CSS-only effects. */
+.intro{
+  position:fixed;inset:0;z-index:9999;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  color:#f5fbff;
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(25,119,151,.34),transparent 34%),
+    radial-gradient(ellipse at 50% 100%,rgba(17,76,112,.36),transparent 55%),
+    linear-gradient(145deg,#020912 0%,#071b2b 52%,#020812 100%);
+  opacity:1;visibility:visible;
+  transition:opacity .55s ease,visibility .55s ease;
+  isolation:isolate;
+}
+.intro:before,.intro:after{
+  content:"";position:absolute;left:50%;top:43%;width:min(72vw,460px);aspect-ratio:1;
+  border:1px solid rgba(115,222,239,.28);border-radius:50%;
+  transform:translate(-50%,-50%) scale(.68);opacity:0;
+  animation:alvoRipple 1.65s cubic-bezier(.16,.72,.24,1) .05s both;
+  pointer-events:none;
+}
+.intro:after{
+  width:min(94vw,610px);border-color:rgba(115,222,239,.12);
+  animation-delay:.2s;
+}
+.intro.hide{opacity:0;visibility:hidden;pointer-events:none}
+.intro-logo{
+  position:relative;z-index:1;
+  font:800 clamp(76px,15vw,112px)/1 Manrope,sans-serif;
+  letter-spacing:-.09em;color:#f5fbff;
+  text-shadow:0 0 34px rgba(90,211,232,.25);
+  animation:alvoMarkIn .78s cubic-bezier(.2,.8,.2,1) both;
+}
+.intro-logo span{color:#61d7e4}
+.intro>b{
+  position:relative;z-index:1;margin-top:18px;
+  color:#eafaff;letter-spacing:.34em;font:700 12px Manrope,sans-serif;
+  animation:alvoNameIn .65s .22s both;
+}
+.intro i{font-style:normal;color:#65d6e2}
+.intro:before{box-shadow:0 0 45px rgba(77,204,225,.08),inset 0 0 35px rgba(77,204,225,.04)}
+.hero-bottle,.feature-bottle{animation:alvoBottleFloat 4.8s ease-in-out infinite}
+.hero-copy>*{animation:alvoRise .65s cubic-bezier(.2,.7,.2,1) both}
+.hero-copy h1{animation-delay:.08s}
+.hero-copy p{animation-delay:.14s}
+.hero-copy .actions{animation-delay:.2s}
+.edition-card,.product-card,.project-card{
+  transition:transform .22s ease,box-shadow .22s ease;
+}
+.edition-card:hover,.product-card:hover,.project-card:hover{
+  transform:translateY(-4px);box-shadow:0 14px 32px rgba(9,39,70,.13)
+}
+.btn{transition:transform .18s ease,background-color .18s ease,color .18s ease}
+.btn:hover{transform:translateY(-2px)}
+@keyframes alvoMarkIn{
+  0%{opacity:0;transform:translateY(18px) scale(.86);filter:blur(8px)}
+  65%{opacity:1;filter:blur(0)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+@keyframes alvoNameIn{from{opacity:0;transform:translateY(12px);letter-spacing:.55em}to{opacity:1;transform:translateY(0);letter-spacing:.34em}}
+@keyframes alvoRipple{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}35%{opacity:.75}100%{opacity:0;transform:translate(-50%,-50%) scale(1.12)}}
+@keyframes alvoRise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes alvoBottleFloat{0%,100%{transform:translate3d(0,0,0) rotate(1deg)}50%{transform:translate3d(0,-8px,0) rotate(-1deg)}}
+@media(max-width:650px){
+  .intro-logo{font-size:82px}
+  .intro>b{font-size:10px;letter-spacing:.28em}
+  .hero-copy>*{animation-duration:.48s}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
